@@ -1,0 +1,81 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: "kotlin-kapt"
+//apply plugin: 'realm-android'
+apply plugin: 'kotlin-android-extensions'
+
+repositories {
+  maven {
+    url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo'
+  }
+  mavenCentral()
+}
+
+android {
+  dataBinding {
+    enabled = true
+  }
+  compileSdkVersion 25
+  buildToolsVersion "25.0.0"
+  defaultConfig {
+    applicationId "pl.brokenpipe.timer"
+    minSdkVersion 16
+    targetSdkVersion 25
+    versionCode 1
+    versionName "1.0"
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  }
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+  }
+  productFlavors {
+    prod {
+
+    }
+
+    dev {
+      minSdkVersion 23
+    }
+  }
+  sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+  }
+}
+
+dependencies {
+  compile fileTree(dir: 'libs', include: ['*.jar'])
+
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  compile 'com.bluelinelabs:conductor:2.0.3'
+  compile "io.reactivex:rxandroid:1.2.1"
+  compile "io.reactivex:rxjava:$rxjava_version"
+  compile "com.android.support:appcompat-v7:$android_support_version"
+  compile "com.android.support:support-v4:$android_support_version"
+  compile 'com.google.dagger:dagger:2.7'
+//  compile 'io.realm:android-adapters:2.0.0'
+//  compile "com.android.support:design:$android_support_version"
+//  compile "com.google.firebase:firebase-crash:$google_services_version"
+//  compile "com.android.support:recyclerview-v7:$android_support_version"
+//  compile 'com.facebook.stetho:stetho:1.4.1'
+//  compile 'com.uphyca:stetho_realm:2.0.0'
+//  compile 'net.danlew:android.joda:2.9.4.1'
+//  compile 'com.squareup.retrofit2:retrofit:2.1.0'
+//  compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+//  compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+//  compile 'com.squareup.okhttp3:logging-interceptor:3.3.1'
+
+  kapt 'org.parceler:parceler:1.1.6'
+  kapt "com.android.databinding:compiler:$gradle_version"
+  kapt 'com.google.dagger:dagger-compiler:2.7'
+//  kapt 'dk.ilios:realmfieldnameshelper:1.1.1'
+
+
+  androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    exclude group: 'com.android.support', module: 'support-annotations'
+  })
+  testCompile 'junit:junit:4.12'
+  compile 'com.android.support.constraint:constraint-layout:1.0.1'
+}

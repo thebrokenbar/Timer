@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Point
 import android.graphics.PointF
+import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -14,10 +16,10 @@ import android.view.View.OnTouchListener
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
+import rx.subjects.BehaviorSubject
 import rx.subjects.PublishSubject
 import timber.log.Timber
 import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
 
 
 /**
@@ -26,35 +28,86 @@ import java.util.concurrent.TimeUnit.SECONDS
 class ClockFace(context: Context, attributeSet: AttributeSet)
     : SurfaceView(context, attributeSet), OnTouchListener {
 
+    val backgroundColor = 0xff383d40.toInt()
+    val baseFaceColor = 0xffd94e4a.toInt()
+    val busyFaceColor = 0xffff6d59.toInt()
 
     val facePaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    val faceBackgroundPaint = Paint()
 
-    val clockHandAngleObservable: PublishSubject<Float> = PublishSubject.create<Float>()
-    val onSizeChangeObservable: PublishSubject<RectF> = PublishSubject.create<RectF>()
+    val onTouchPointObservable: PublishSubject<PointF> = PublishSubject.create()
+    val onSizeChangeObservable: PublishSubject<RectF> = PublishSubject.create()
+    val onFullSpinsCountChange: BehaviorSubject<Int> = BehaviorSubject.create()
+
+    var fullSpinsCount = 0
 
     init {
         with(facePaint) {
             style = Paint.Style.FILL
-            color = 0xffff0000.toInt()
+            color = baseFaceColor
+        }
+        with(faceBackgroundPaint) {
+            style = Paint.Style.FILL
+            color = backgroundColor
         }
         setOnTouchListener(this)
         setWillNotDraw(false)
         invalidate()
         observeChanges()
+        onFullSpinsCountChange.onNext(fullSpinsCount)
     }
 
+    private var clockRect: Rect = Rect()
     private var faceCenter: PointF = PointF(0f, 0f)
     private var path: Path = Path()
 
+    private var lastAngle = 0f
+
     private fun observeChanges() {
         Observable.combineLatest(
-            clockHandAngleObservable, onSizeChangeObservable,
-            { angle, rect -> makePath(angle, rect) })
+            onTouchPointObservable
+                .map { getAngle(faceCenter, PointF(it.x, it.y)) }
+                .doOnNext { updateFullSpins(it) },
+            onSizeChangeObservable, onFullSpinsCountChange,
+            { angle, rect, fullSpins ->
+                updatePaint(fullSpins)
+                makePath(angle, rect)
+            })
             .subscribeOn(Schedulers.computation())
             .sample(16, MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ invalidate() })
     }
+
+    fun  updatePaint(fullSpins: Int) {
+        if (fullSpins == 0) {
+            faceBackgroundPaint.color = backgroundColor
+            facePaint.color = baseFaceColor
+        } else if (fullSpins % 2 != 0) {
+            faceBackgroundPaint.color = baseFaceColor
+            facePaint.color = busyFaceColor
+        } else {
+            faceBackgroundPaint.color = busyFaceColor
+            facePaint.color = baseFaceColor
+        }
+    }
+
+    private fun updateFullSpins(angle: Float) {
+        if (isFullSpinnedForward(angle)) {
+            fullSpinsCount += 1
+            onFullSpinsCountChange.onNext(fullSpinsCount)
+        } else if (isFullSpinnedBackwards(angle)) {
+            fullSpinsCount -= 1
+            onFullSpinsCountChange.onNext(fullSpinsCount)
+        }
+        lastAngle = angle
+    }
+
+    private fun isFullSpinnedBackwards(angle: Float) =
+        rotateAngle(lastAngle, -180f) < 90 && rotateAngle(angle, -180f) > 270
+
+    private fun isFullSpinnedForward(angle: Float) =
+        rotateAngle(lastAngle, -180f) > 270 && rotateAngle(angle, -180f) < 90
 
     private fun makePath(angle: Float, rect: RectF): Path {
         val rectDiagonalLength = Math.sqrt(
@@ -67,8 +120,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         path.moveTo(faceCenter.x, faceCenter.y)
         path.lineTo(faceCenter.x, 0f)
 
-
-        for(point in getIncludedCornersPoints(angle, rect)) {
+        for (point in getIncludedCornersPoints(angle, rect)) {
             path.lineTo(point.x, point.y)
         }
 
@@ -86,16 +138,14 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                val angle = getAngle(faceCenter, PointF(event.x, event.y))
-                Timber.d("Touch angle %f", angle)
-                clockHandAngleObservable.onNext(angle)
+                onTouchPointObservable.onNext(PointF(event.x, event.y))
                 return true
             }
         }
         return false
     }
 
-    private fun getIncludedCornersPoints(clockHandAngle: Float, rect: RectF): Array<PointF>{
+    private fun getIncludedCornersPoints(clockHandAngle: Float, rect: RectF): Array<PointF> {
         val rectCenter = PointF(rect.right / 2f, rect.bottom / 2f)
         val firstCornerPoint = PointF(rect.left, rect.top)
         val secondCornerPoint = PointF(rect.left, rect.bottom)
@@ -109,13 +159,13 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
 
         val angle = rotateAngle(clockHandAngle, -180f)
 
-        if(angle > fourthCornerAngle) {
+        if (angle > fourthCornerAngle) {
             return arrayOf(firstCornerPoint, secondCornerPoint, thirdCornerPoint, fourthCornerPoint)
-        } else if(angle > thirdCornerAngle) {
+        } else if (angle > thirdCornerAngle) {
             return arrayOf(firstCornerPoint, secondCornerPoint, thirdCornerPoint)
-        } else if(angle > secondCornerAngle) {
+        } else if (angle > secondCornerAngle) {
             return arrayOf(firstCornerPoint, secondCornerPoint)
-        } else if(angle > firstCornerAngle) {
+        } else if (angle > firstCornerAngle) {
             return arrayOf(firstCornerPoint)
         } else {
             return emptyArray()
@@ -141,10 +191,12 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         onSizeChangeObservable.onNext(RectF(0f, 0f, w.toFloat(), h.toFloat()))
+        clockRect.set(0, 0, w, h)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        canvas.drawRect(clockRect, faceBackgroundPaint)
         canvas.drawPath(path, facePaint)
     }
 }

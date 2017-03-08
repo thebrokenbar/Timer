@@ -8,6 +8,9 @@ import android.view.ViewGroup
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.RouterTransaction
 import pl.brokenpipe.timer.screens.timer.TimerView
+import timber.log.Timber
+import timber.log.Timber.DebugTree
+import timber.log.Timber.Tree
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -18,6 +21,7 @@ class TimerMainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Timber.plant(DebugTree())
         setContentView(R.layout.activity_timer_main)
         container = findViewById(R.id.conductorContainer) as ViewGroup
 

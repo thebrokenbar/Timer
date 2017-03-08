@@ -55,6 +55,7 @@ dependencies {
   compile "com.android.support:appcompat-v7:$android_support_version"
   compile "com.android.support:support-v4:$android_support_version"
   compile 'com.google.dagger:dagger:2.7'
+  compile 'com.jakewharton.timber:timber:4.5.1'
 //  compile 'io.realm:android-adapters:2.0.0'
 //  compile "com.android.support:design:$android_support_version"
 //  compile "com.google.firebase:firebase-crash:$google_services_version"

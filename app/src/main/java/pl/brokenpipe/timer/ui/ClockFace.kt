@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 class ClockFace(context: Context, attributeSet: AttributeSet)
     : SurfaceView(context, attributeSet), OnTouchListener {
 
+    private val HANDLE_DRAG_ANGLE = 3
+
     val backgroundColor = 0xff383d40.toInt()
     val baseFaceColor = 0xffd94e4a.toInt()
     val busyFaceColor = 0xffff6d59.toInt()
@@ -61,14 +63,19 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     private var faceCenter: PointF = PointF(0f, 0f)
     private var path: Path = Path()
 
-    private var lastAngle = 0f
+    private var lastAngle = 180f
+    private var isClockHandDragged: Boolean = false
+
 
     private fun observeChanges() {
         Observable.combineLatest(
             onTouchPointObservable
                 .map { getAngle(faceCenter, PointF(it.x, it.y)) }
+                .filter { isHandleDragged(it) }
                 .doOnNext { updateFullSpins(it) },
-            onSizeChangeObservable, onFullSpinsCountChange,
+            onSizeChangeObservable.doOnNext {
+                faceCenter = PointF((it.right - it.left) / 2, (it.bottom - it.top) / 2)
+            }, onFullSpinsCountChange,
             { angle, rect, fullSpins ->
                 updatePaint(fullSpins)
                 makePath(angle, rect)
@@ -77,6 +84,17 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
             .sample(16, MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ invalidate() })
+    }
+
+
+    private fun isHandleDragged(it: Float): Boolean {
+        if (!isClockHandDragged) {
+            Timber.d("Angle - %f", it)
+            if (Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE) {
+                isClockHandDragged = true
+            }
+        }
+        return isClockHandDragged
     }
 
     fun  updatePaint(fullSpins: Int) {
@@ -94,10 +112,10 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
 
     private fun updateFullSpins(angle: Float) {
         if (isFullSpinnedForward(angle)) {
-            fullSpinsCount += 1
+            fullSpinsCount += HANDLE_DRAG_ANGLE
             onFullSpinsCountChange.onNext(fullSpinsCount)
         } else if (isFullSpinnedBackwards(angle)) {
-            fullSpinsCount -= 1
+            fullSpinsCount -= HANDLE_DRAG_ANGLE
             onFullSpinsCountChange.onNext(fullSpinsCount)
         }
         lastAngle = angle
@@ -113,7 +131,6 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         val rectDiagonalLength = Math.sqrt(
             Math.pow(rect.right.toDouble(), 2.0) + Math.pow(
                 rect.bottom.toDouble(), 2.0))
-        faceCenter = PointF((rect.right - rect.left) / 2, (rect.bottom - rect.top) / 2)
 
         path.reset()
 
@@ -135,8 +152,13 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         return path
     }
 
+
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         when (event.action) {
+
+            MotionEvent.ACTION_UP -> {
+                isClockHandDragged = false
+            }
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                 onTouchPointObservable.onNext(PointF(event.x, event.y))
                 return true

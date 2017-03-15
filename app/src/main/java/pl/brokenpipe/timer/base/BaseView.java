@@ -34,10 +34,14 @@ public abstract class BaseView<V extends ViewDataBinding> extends Controller {
     protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
         int layoutId = getLayoutId();
         binding = DataBindingUtil.inflate(inflater, layoutId, container, false);
-        View view = binding.getRoot();
+        return binding.getRoot();
+    }
+
+    @Override
+    protected void onAttach(@NonNull View view) {
+        super.onAttach(view);
         onViewBound(binding);
         binding.executePendingBindings();
-        return view;
     }
 
     private int getLayoutId() {
@@ -56,8 +60,8 @@ public abstract class BaseView<V extends ViewDataBinding> extends Controller {
     }
 
     @Override
-    protected void onDestroyView(View view) {
-        super.onDestroyView(view);
+    protected void onDetach(@NonNull View view) {
+        super.onDetach(view);
         onViewUnbound(binding);
         binding.unbind();
     }

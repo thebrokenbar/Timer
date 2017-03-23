@@ -3,11 +3,7 @@ package pl.brokenpipe.timer.screens.timer
 import android.databinding.BaseObservable
 import android.databinding.Bindable
 import pl.brokenpipe.timer.BR
-import rx.functions.Action1
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Created by wierzchanowskig on 05.03.2017.
@@ -18,7 +14,9 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
         timerViewActions.getTimerSecondsObservable()
             .subscribe({
                            time = secondsToTime(it)
-                           Timber.d("time = %s", time)
+                           if (it == 0L && isClockRunning) {
+                               timerViewActions.playEndSound()
+                           }
                        })
     }
 
@@ -37,8 +35,18 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
         }
 
     fun onStartPauseClick() {
-        if (isClockRunning) timerViewActions.pauseTimer() else timerViewActions.startTimer()
-        isClockRunning = !isClockRunning
+        if (isClockRunning) pauseTimer() else startTimer()
+        timerViewActions.stopEndSound()
+    }
+
+    private fun pauseTimer() {
+        isClockRunning = false
+        timerViewActions.pauseTimer()
+    }
+
+    private fun startTimer() {
+        isClockRunning = true
+        timerViewActions.startTimer()
     }
 
     private fun secondsToTime(seconds: Long): String {

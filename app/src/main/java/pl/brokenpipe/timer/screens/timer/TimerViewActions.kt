@@ -9,4 +9,6 @@ interface TimerViewActions {
     fun startTimer()
     fun pauseTimer()
     fun getTimerSecondsObservable(): Observable<Long>
+    fun playEndSound()
+    fun stopEndSound()
 }

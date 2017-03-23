@@ -10,21 +10,9 @@
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <Button
-            android:onClick="@{() -> viewModel.onStartPauseClick()}"
-            android:text='@{viewModel.time}'
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="8dp"
-            android:layout_marginRight="8dp"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="8dp" />
 
         <pl.brokenpipe.timer.ui.clock.ClockFace
+            tools:visibility="gone"
             android:id="@+id/clockFace"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -38,5 +26,51 @@
             app:layout_constraintTop_toTopOf="parent"
             android:layout_marginStart="0dp"
             android:layout_marginEnd="0dp" />
+        <RelativeLayout
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/clock_background"
+            android:onClick="@{() -> viewModel.onStartPauseClick()}"
+            android:padding="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <TextView
+                android:id="@+id/tvClockLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="4dp"
+                android:textAlignment="center"
+                android:textColor="@color/text_color_secondary_dark"
+                android:textSize="12sp"
+                tools:text="Part #5" />
+            <TextView
+                android:id="@+id/tvClockCounter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tvClockLabel"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="sans-serif"
+                android:text="@{viewModel.time}"
+                android:textAlignment="center"
+                android:textColor="@color/text_color_primary_dark"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                tools:text="2:24" />
+            <ImageView
+                android:id="@+id/ivClockActionImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tvClockCounter"
+                android:layout_centerHorizontal="true"
+                android:layout_centerInParent="false"
+                android:src="@{viewModel.clockRunning ? @drawable/ic_pause_white_24dp : @drawable/ic_play_arrow_white_24dp}" />
+        </RelativeLayout>
     </android.support.constraint.ConstraintLayout>
 </layout>

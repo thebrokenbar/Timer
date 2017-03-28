@@ -5,17 +5,16 @@ import android.databinding.Bindable
 import pl.brokenpipe.timer.BR
 import timber.log.Timber
 
-/**
- * Created by wierzchanowskig on 05.03.2017.
- */
 class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() {
 
     init {
         timerViewActions.getTimerSecondsObservable()
             .subscribe({
+                           timeInSec = it
                            time = secondsToTime(it)
                            if (it == 0L && isClockRunning) {
                                timerViewActions.playEndSound()
+                               pauseTimer()
                            }
                        })
     }
@@ -27,8 +26,10 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
             notifyPropertyChanged(BR.clockRunning)
         }
 
+    var timeInSec = 0L
+
     @get:Bindable
-    var time: String = "0:00:00"
+    var time: String = secondsToTime(0)
         set(value) {
             field = value
             notifyPropertyChanged(BR.time)
@@ -45,14 +46,20 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
     }
 
     private fun startTimer() {
-        isClockRunning = true
-        timerViewActions.startTimer()
+        if (timeInSec > 0L) {
+            isClockRunning = true
+            timerViewActions.startTimer()
+        }
     }
 
     private fun secondsToTime(seconds: Long): String {
         val sec = seconds % 60
         val min = (seconds - sec) / 60 % 60
         val hour = seconds.div(3600)
-        return "%d:%02d:%02d".format(hour, min, sec)
+        if (hour > 0) {
+            return "%d:%02d:%02d".format(hour, min, sec)
+        } else {
+            return "%02d:%02d".format(min, sec)
+        }
     }
 }

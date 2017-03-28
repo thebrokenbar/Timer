@@ -12,18 +12,16 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 
-/**
- * Created by wierzchanowskig on 23.03.2017.
- */
 class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceActions) {
 
     private val HANDLE_DRAG_ANGLE = 15
+    private val MAX_FULL_SPINS = Int.MAX_VALUE
 
-    private val onAngleChangeObservable: BehaviorSubject<Float> = BehaviorSubject.create()
+    private val onAngleChangeObservable: PublishSubject<Float> = PublishSubject.create()
     private val onTimeSetSubject: PublishSubject<Long> = PublishSubject.create()
 
     private var fullSpinsCount = 0
-    private var lastAngle = 180f
+    var lastAngle = 180f
     private var clockHandleAngleOffset: Float = 0f
     private var isClockHandDragged: Boolean = false
     private var isRunning = false
@@ -35,6 +33,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             } else {
                 field = 0
                 emitTime(0)
+                timerRunSubscription?.unsubscribe()
             }
         }
 
@@ -64,10 +63,15 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
 
     fun getTouchAngleObservable(): Observable<Float> {
         return onAngleChangeObservable
-            .map { updateFullSpins(it) }
+            .doOnNext { updateFullSpins(it) }
             .doOnNext {
-                timeInSec = angleHelper.angleToSeconds(it, fullSpinsCount)
+                val seconds = angleHelper.angleToSeconds(it, fullSpinsCount)
+                timeInSec = snapToMinutes(seconds)
             }
+    }
+
+    private fun snapToMinutes(seconds: Long): Long {
+        return (Math.round(seconds / 60f) * 60).toLong()
     }
 
     private fun getTimerAngleObservable(): Observable<Float> {
@@ -93,9 +97,9 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         return !isRunning && Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE
     }
 
-    private fun updateFullSpins(angle: Float): Float {
+    private fun updateFullSpins(angle: Float) {
         if (isFullSpinnedForward(angle)) {
-            fullSpinsCount++
+            fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
         } else if (isFullSpinnedBackwards(angle)) {
             fullSpinsCount--
         }
@@ -106,10 +110,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         if (fullSpinsCount < 0) {
             fullSpinsCount = -1
             lastAngle = 180f
-            return lastAngle
         }
-
-        return angle
     }
 
     private fun isFullSpinnedBackwards(angle: Float) =
@@ -133,12 +134,18 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         onTimeSetSubject.onNext(timeInSec)
     }
 
-    fun onTouchDown() {
+    fun onTouchUp() {
+        if (isClockHandDragged) {
+            val angle = angleHelper.secondsToAngle(snapToMinutes(timeInSec))
+            emitAngle(angleHelper.rotateAngle(angle, -180f))
+        }
         isClockHandDragged = false
-        fullSpinsCount = 0
+        if (fullSpinsCount < 0) {
+            fullSpinsCount = 0
+        }
     }
 
-    fun onTouchUp(angle: Float) {
+    fun onTouchDown(angle: Float) {
         isClockHandDragged = isHandleDragged(angle)
         if (isClockHandDragged) {
             clockHandleAngleOffset = angle - lastAngle

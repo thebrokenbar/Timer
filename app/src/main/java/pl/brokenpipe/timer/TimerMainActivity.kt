@@ -31,6 +31,11 @@ class TimerMainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        goFullScreen()
+    }
+
     @SuppressLint("InlinedApi")
     fun goFullScreen() {
         supportActionBar?.hide()

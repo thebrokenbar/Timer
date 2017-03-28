@@ -1,5 +1,6 @@
 package pl.brokenpipe.timer.screens.timer
 
+import android.media.AudioManager
 import android.media.SoundPool
 import kotlinx.android.synthetic.main.timer_view.clockFace
 import pl.brokenpipe.timer.R
@@ -10,14 +11,14 @@ import pl.brokenpipe.timer.databinding.TimerViewBinding
 import rx.Observable
 import timber.log.Timber
 
-/**
- * Created by wierzchanowskig on 05.03.2017.
- */
 @Layout(R.layout.timer_view)
-class TimerView: BaseView<TimerViewBinding>(), TimerViewActions {
+class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     lateinit var viewModel: TimerViewModel
-    val soundPool: SoundPool = SoundPool.Builder().build()
+    @Suppress("DEPRECATION")
+    val soundPool: SoundPool = if (android.os.Build.VERSION.SDK_INT >= 21) SoundPool.Builder().build()
+    else SoundPool(2, AudioManager.STREAM_MUSIC, 0)
+
     var soundId: Int = 0
 
     override fun startTimer() {
@@ -29,7 +30,7 @@ class TimerView: BaseView<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun onViewBound(binding: TimerViewBinding) {
-        (activity as TimerMainActivity).goFullScreen()
+//        (activity as TimerMainActivity).goFullScreen()
         viewModel = TimerViewModel(this)
         binding.viewModel = viewModel
         soundId = soundPool.load(activity, R.raw.alarm2, 1)

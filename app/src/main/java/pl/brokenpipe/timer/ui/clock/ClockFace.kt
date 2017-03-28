@@ -1,14 +1,18 @@
 package pl.brokenpipe.timer.ui.clock
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Paint.Style.FILL
 import android.graphics.Paint.Style.STROKE
 import android.graphics.Path
 import android.graphics.PointF
-import android.graphics.Rect
+import android.graphics.PorterDuff.Mode
+import android.graphics.PorterDuffXfermode
+import android.graphics.RadialGradient
 import android.graphics.RectF
+import android.graphics.Shader.TileMode.CLAMP
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceView
@@ -17,10 +21,6 @@ import android.view.View.OnTouchListener
 import pl.brokenpipe.timer.ui.clock.interfaces.ClockFaceActions
 import rx.Observable
 
-
-/**
- * Created by wierzchanowskig on 05.03.2017.
- */
 class ClockFace(context: Context, attributeSet: AttributeSet)
     : SurfaceView(context, attributeSet), OnTouchListener, ClockFaceActions {
 
@@ -35,6 +35,9 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     val facePaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
     val handPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     val faceBackgroundPaint = Paint()
+    val faceDividersPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    val faceDividersMaskPaint = Paint()
+    val bitmapPaint = Paint()
 
     private var clockRect: RectF = RectF()
     private var faceCenter: PointF = PointF(0f, 0f)
@@ -42,6 +45,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     private val clockHand: Path = Path()
     private var cornerAngles: Array<Float> = emptyArray()
     private var cornerPoints: Array<PointF> = emptyArray()
+    private var faceDividersBitmap = Bitmap.createBitmap(1,1, Bitmap.Config.ARGB_8888)
 
     init {
         with(facePaint) {
@@ -57,13 +61,22 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
             color = handColor
             strokeWidth = 2f
         }
+        with(faceDividersPaint) {
+            style = STROKE
+            color = handColor
+            strokeWidth = 1.5f
+        }
+        with(faceDividersMaskPaint) {
+            style = FILL
+            color = 0xffffffff.toInt()
+            xfermode = PorterDuffXfermode(Mode.DST_IN)
+        }
 
         setOnTouchListener(this)
         setWillNotDraw(false)
 
         update()
         pause()
-        logic.emitAngle(180f)
     }
 
     fun start() {
@@ -88,12 +101,12 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_UP -> {
-                logic.onTouchDown()
+                logic.onTouchUp()
                 return true
             }
             MotionEvent.ACTION_DOWN -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                logic.onTouchUp(angle)
+                logic.onTouchDown(angle)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -144,13 +157,45 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         clockRect.set(0f, 0f, w.toFloat(), h.toFloat())
         faceCenter = PointF(w / 2f, h / 2f)
         calculateCorners(clockRect)
+        setFaceDividers(clockRect)
+        setClockFaceShape(logic.lastAngle)
+        update()
+    }
+
+    private fun setFaceDividers(clockRect: RectF): Bitmap {
+        faceDividersBitmap.recycle()
+        faceDividersBitmap = Bitmap.createBitmap(
+            clockRect.right.toInt(), clockRect.bottom.toInt(), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(faceDividersBitmap)
+        val rectCenter = PointF(clockRect.right / 2f, clockRect.bottom / 2f)
+        val maskRadius = Math.min(clockRect.bottom, clockRect.right)
+        val rectDiagonalLength = Math.sqrt(
+            Math.pow(clockRect.right.toDouble(), 2.0) + Math.pow(
+                clockRect.bottom.toDouble(), 2.0)).toFloat()
+
+        faceDividersMaskPaint.shader = RadialGradient(
+            rectCenter.x, rectCenter.y, maskRadius, intArrayOf(0x00ffffff, 0x00ffffff, 0x99ffffff.toInt()),
+            floatArrayOf(0f, 0.3f, 1f), CLAMP)
+
+        (0..11)
+            .map { getLineEnd(rectCenter.x, rectCenter.y, it * 30f, rectDiagonalLength) }
+            .forEach { canvas.drawLine(rectCenter.x, rectCenter.y, it.x, it.y, faceDividersPaint) }
+
+        canvas.drawRect(clockRect, faceDividersMaskPaint)
+        return faceDividersBitmap
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
         canvas.drawRect(clockRect, faceBackgroundPaint)
         canvas.drawPath(faceShape, facePaint)
-        canvas.drawPath(clockHand, handPaint)
+        canvas.drawBitmap(faceDividersBitmap, 0f,0f, bitmapPaint)
+        if(clockHand.isEmpty) {
+            canvas.drawLine(clockRect.right / 2, clockRect.bottom / 2, clockRect.right / 2, clockRect.top, handPaint)
+        } else {
+            canvas.drawPath(clockHand, handPaint)
+        }
     }
 
     override fun setClockFaceShape(angle: Float) {

@@ -1,8 +1,15 @@
 package pl.brokenpipe.timer.screens.timer
 
+import android.graphics.Interpolator
 import android.media.AudioManager
 import android.media.SoundPool
-import kotlinx.android.synthetic.main.timer_view.clockFace
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.AnimationSet
+import android.view.animation.AnimationUtils
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.ScaleAnimation
+import kotlinx.android.synthetic.main.timer_view.*
 import pl.brokenpipe.timer.R
 import pl.brokenpipe.timer.TimerMainActivity
 import pl.brokenpipe.timer.base.BaseView
@@ -14,6 +21,8 @@ import timber.log.Timber
 @Layout(R.layout.timer_view)
 class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
+    private var timeFlowAnimation = AnimationSet(true)
+
     lateinit var viewModel: TimerViewModel
     @Suppress("DEPRECATION")
     val soundPool: SoundPool = if (android.os.Build.VERSION.SDK_INT >= 21) SoundPool.Builder().build()
@@ -21,16 +30,40 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     var soundId: Int = 0
 
+    init {
+        with(timeFlowAnimation) {
+            interpolator = DecelerateInterpolator(1.1f)
+            val scale = ScaleAnimation(
+                1f, 1.3f, 1f, 1.3f, Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f)
+            scale.duration = 300
+
+            val fade = AlphaAnimation(1f, 0f)
+            fade.duration = 300
+
+            addAnimation(scale)
+            addAnimation(fade)
+
+            duration = 300
+            repeatCount = 1
+        }
+    }
+
     override fun startTimer() {
         activity.clockFace.start()
     }
 
     override fun pauseTimer() {
         activity.clockFace.pause()
+        activity.rlClockCenter.clearAnimation()
+
+    }
+
+    override fun animateTimeFlow() {
+        activity.vClockCenterBackground.startAnimation(timeFlowAnimation)
     }
 
     override fun onViewBound(binding: TimerViewBinding) {
-//        (activity as TimerMainActivity).goFullScreen()
         viewModel = TimerViewModel(this)
         binding.viewModel = viewModel
         soundId = soundPool.load(activity, R.raw.alarm2, 1)

@@ -26,7 +26,17 @@
             app:layout_constraintTop_toTopOf="parent"
             android:layout_marginStart="0dp"
             android:layout_marginEnd="0dp" />
+        <View
+            android:id="@+id/vClockCenterBackground"
+            android:background="@color/clock_background"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            app:layout_constraintRight_toRightOf="@+id/rlClockCenter"
+            app:layout_constraintLeft_toLeftOf="@+id/rlClockCenter"
+            app:layout_constraintBottom_toBottomOf="@+id/rlClockCenter"
+            app:layout_constraintTop_toTopOf="@+id/rlClockCenter" />
         <RelativeLayout
+            android:id="@+id/rlClockCenter"
             android:layout_width="110dp"
             android:layout_height="110dp"
             android:layout_marginBottom="8dp"

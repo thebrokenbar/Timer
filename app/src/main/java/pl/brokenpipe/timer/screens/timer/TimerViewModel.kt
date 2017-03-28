@@ -3,18 +3,24 @@ package pl.brokenpipe.timer.screens.timer
 import android.databinding.BaseObservable
 import android.databinding.Bindable
 import pl.brokenpipe.timer.BR
+import rx.android.schedulers.AndroidSchedulers
 import timber.log.Timber
 
 class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() {
 
     init {
         timerViewActions.getTimerSecondsObservable()
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                            timeInSec = it
                            time = secondsToTime(it)
                            if (it == 0L && isClockRunning) {
                                timerViewActions.playEndSound()
                                pauseTimer()
+                           } else {
+                               if(isClockRunning) {
+                                   timerViewActions.animateTimeFlow()
+                               }
                            }
                        })
     }

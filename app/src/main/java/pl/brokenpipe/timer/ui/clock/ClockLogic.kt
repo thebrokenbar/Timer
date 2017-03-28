@@ -63,7 +63,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
 
     fun getTouchAngleObservable(): Observable<Float> {
         return onAngleChangeObservable
-            .doOnNext { updateFullSpins(it) }
+            .map { updateFullSpins(it) }
             .doOnNext {
                 val seconds = angleHelper.angleToSeconds(it, fullSpinsCount)
                 timeInSec = snapToMinutes(seconds)
@@ -97,7 +97,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         return !isRunning && Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE
     }
 
-    private fun updateFullSpins(angle: Float) {
+    private fun updateFullSpins(angle: Float):Float {
         if (isFullSpinnedForward(angle)) {
             fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
         } else if (isFullSpinnedBackwards(angle)) {
@@ -110,7 +110,9 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         if (fullSpinsCount < 0) {
             fullSpinsCount = -1
             lastAngle = 180f
+            return lastAngle
         }
+        return angle
     }
 
     private fun isFullSpinnedBackwards(angle: Float) =

@@ -22,6 +22,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
 
     private var fullSpinsCount = 0
     var lastAngle = 180f
+
     private var clockHandleAngleOffset: Float = 0f
     private var isClockHandDragged: Boolean = false
     private var isRunning = false

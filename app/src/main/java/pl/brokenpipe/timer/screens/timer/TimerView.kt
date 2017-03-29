@@ -32,19 +32,20 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     init {
         with(timeFlowAnimation) {
-            interpolator = DecelerateInterpolator(1.1f)
+            val animationDuration = 800L
+            interpolator = DecelerateInterpolator()
             val scale = ScaleAnimation(
-                1f, 1.3f, 1f, 1.3f, Animation.RELATIVE_TO_SELF, 0.5f,
+                1f, 1.2f, 1f, 1.2f, Animation.RELATIVE_TO_SELF, 0.5f,
                 Animation.RELATIVE_TO_SELF, 0.5f)
-            scale.duration = 300
+            scale.duration = animationDuration
 
             val fade = AlphaAnimation(1f, 0f)
-            fade.duration = 300
+            fade.duration = animationDuration
 
             addAnimation(scale)
             addAnimation(fade)
 
-            duration = 300
+            duration = animationDuration
             repeatCount = 1
         }
     }

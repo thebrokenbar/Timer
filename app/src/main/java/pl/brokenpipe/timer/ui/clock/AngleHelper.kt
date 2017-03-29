@@ -29,7 +29,10 @@ open class AngleHelper {
     }
 
     fun secondsToAngle(seconds: Long): Float {
-        return seconds * ONE_SECOND_ANGLE
+        val calculatedAngle = seconds * ONE_SECOND_ANGLE
+        return if(calculatedAngle >= 360)
+            calculatedAngle - (calculatedAngle - (calculatedAngle % 360))
+        else calculatedAngle
     }
 
     fun angleToSeconds(it: Float, fullSpinsCount: Int): Long {

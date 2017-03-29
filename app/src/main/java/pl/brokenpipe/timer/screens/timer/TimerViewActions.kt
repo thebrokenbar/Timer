@@ -9,4 +9,6 @@ interface TimerViewActions {
     fun playEndSound()
     fun stopEndSound()
     fun animateTimeFlow()
+    fun keepScreenOn()
+    fun letScreenOff()
 }

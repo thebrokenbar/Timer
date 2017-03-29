@@ -3,6 +3,7 @@ package pl.brokenpipe.timer.screens.timer
 import android.graphics.Interpolator
 import android.media.AudioManager
 import android.media.SoundPool
+import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.view.animation.AnimationSet
@@ -81,5 +82,13 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     override fun stopEndSound() {
         soundPool.stop(soundId)
+    }
+
+    override fun keepScreenOn() {
+        activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    override fun letScreenOff() {
+        activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 }

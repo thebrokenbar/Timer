@@ -49,12 +49,14 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
     private fun pauseTimer() {
         isClockRunning = false
         timerViewActions.pauseTimer()
+        timerViewActions.letScreenOff()
     }
 
     private fun startTimer() {
         if (timeInSec > 0L) {
             isClockRunning = true
             timerViewActions.startTimer()
+            timerViewActions.keepScreenOn()
         }
     }
 

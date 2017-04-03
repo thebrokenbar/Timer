@@ -1,5 +1,6 @@
 package pl.brokenpipe.timer.screens.timer
 
+import android.animation.ValueAnimator
 import android.graphics.Interpolator
 import android.media.AudioManager
 import android.media.SoundPool
@@ -19,9 +20,12 @@ import pl.brokenpipe.timer.databinding.TimerViewBinding
 import rx.Observable
 import timber.log.Timber
 
+private val l = 200
+
 @Layout(R.layout.timer_view)
 class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
+    private val SOUND_FADE_OUT_DURATION = 200L
     private var timeFlowAnimation = AnimationSet(true)
 
     lateinit var viewModel: TimerViewModel
@@ -81,6 +85,15 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun stopEndSound() {
+        var animation = ValueAnimator.ofFloat(1f, 0f)
+        animation.duration = SOUND_FADE_OUT_DURATION
+        animation.repeatCount = 1
+        animation.addUpdateListener {
+            soundPool.setVolume(soundId, it.animatedValue as Float, it.animatedValue as Float)
+            if(it.animatedValue as Float <= 0) {
+                it.removeAllUpdateListeners()
+            }
+        }
         soundPool.stop(soundId)
     }
 

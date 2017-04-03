@@ -63,7 +63,7 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun animateTimeFlow() {
-        activity?.vClockCenterBackground?.startAnimation(timeFlowAnimation)
+        activity.vClockCenterBackground.startAnimation(timeFlowAnimation)
     }
 
     override fun onViewBound(binding: TimerViewBinding) {

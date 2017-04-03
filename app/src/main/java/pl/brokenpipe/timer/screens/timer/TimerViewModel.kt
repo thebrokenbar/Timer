@@ -12,18 +12,24 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
     init {
         timerViewActions.getTimerSecondsObservable()
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                           timeInSec = it
-                           time = secondsToTime(it)
-                           if (it == 0L && isClockRunning) {
-                               timerViewActions.playEndSound()
-                               pauseTimer()
-                           } else {
-                               if (isClockRunning) {
-                                   timerViewActions.animateTimeFlow()
-                               }
-                           }
-                       })
+            .doOnNext {
+                timeInSec = it
+                time = secondsToTime(it)
+                if (it == 0L && isClockRunning) {
+                    timerViewActions.playEndSound()
+                    pauseTimer()
+                } else {
+                    if (isClockRunning) {
+                        try {
+                            timerViewActions.animateTimeFlow()
+                        } catch (e: IllegalStateException) {
+                            Timber.d(e)
+                        }
+                    }
+                }
+            }
+            .onErrorReturn { timeInSec }
+            .subscribe()
     }
 
     @get:Bindable
@@ -65,7 +71,7 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
         val hour = seconds.div(3600)
         if (hour > 0) {
             return "%d:%02d:%02d".format(hour, min, sec)
-        } else if(min > 0){
+        } else if (min > 0) {
             return "%02d:%02d".format(min, sec)
         } else {
             return "%02d".format(sec)

@@ -94,7 +94,8 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     private fun isHandleDragged(it: Float): Boolean {
-        return Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE
+        return (Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE)
+            || (Math.abs(lastAngle - it) > 360 - HANDLE_DRAG_ANGLE)
     }
 
     private fun updateFullSpins(angle: Float): Float {

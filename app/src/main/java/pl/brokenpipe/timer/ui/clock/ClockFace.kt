@@ -87,6 +87,8 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         logic.pause()
     }
 
+    fun getStateObservable(): Observable<Boolean> = logic.getStateObservable()
+
     override fun update() {
         invalidate()
     }

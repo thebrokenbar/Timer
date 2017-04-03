@@ -3,6 +3,7 @@ package pl.brokenpipe.timer.screens.timer
 import android.databinding.BaseObservable
 import android.databinding.Bindable
 import pl.brokenpipe.timer.BR
+import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import timber.log.Timber
 
@@ -18,7 +19,7 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
                                timerViewActions.playEndSound()
                                pauseTimer()
                            } else {
-                               if(isClockRunning) {
+                               if (isClockRunning) {
                                    timerViewActions.animateTimeFlow()
                                }
                            }
@@ -47,14 +48,12 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
     }
 
     private fun pauseTimer() {
-        isClockRunning = false
         timerViewActions.pauseTimer()
         timerViewActions.letScreenOff()
     }
 
     private fun startTimer() {
         if (timeInSec > 0L) {
-            isClockRunning = true
             timerViewActions.startTimer()
             timerViewActions.keepScreenOn()
         }
@@ -66,8 +65,14 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
         val hour = seconds.div(3600)
         if (hour > 0) {
             return "%d:%02d:%02d".format(hour, min, sec)
-        } else {
+        } else if(min > 0){
             return "%02d:%02d".format(min, sec)
+        } else {
+            return "%02d".format(sec)
         }
+    }
+
+    fun subscribeClockState(stateObservable: Observable<Boolean>) {
+        stateObservable.subscribe({ isClockRunning = it })
     }
 }

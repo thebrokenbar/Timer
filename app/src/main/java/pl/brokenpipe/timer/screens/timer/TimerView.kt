@@ -1,26 +1,23 @@
 package pl.brokenpipe.timer.screens.timer
 
 import android.animation.ValueAnimator
-import android.graphics.Interpolator
 import android.media.AudioManager
 import android.media.SoundPool
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.view.animation.AnimationSet
-import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.ScaleAnimation
-import kotlinx.android.synthetic.main.timer_view.*
+import kotlinx.android.synthetic.main.timer_view.clockFace
+import kotlinx.android.synthetic.main.timer_view.rlClockCenter
+import kotlinx.android.synthetic.main.timer_view.vClockCenterBackground
 import pl.brokenpipe.timer.R
-import pl.brokenpipe.timer.TimerMainActivity
 import pl.brokenpipe.timer.base.BaseView
 import pl.brokenpipe.timer.base.Layout
 import pl.brokenpipe.timer.databinding.TimerViewBinding
 import rx.Observable
 import timber.log.Timber
-
-private val l = 200
 
 @Layout(R.layout.timer_view)
 class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
@@ -73,6 +70,7 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
         viewModel = TimerViewModel(this)
         binding.viewModel = viewModel
         soundId = soundPool.load(activity, R.raw.alarm2, 1)
+        viewModel.subscribeClockState(activity.clockFace.getStateObservable())
     }
 
     override fun getTimerSecondsObservable(): Observable<Long> {
@@ -85,12 +83,12 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun stopEndSound() {
-        var animation = ValueAnimator.ofFloat(1f, 0f)
+        val animation = ValueAnimator.ofFloat(1f, 0f)
         animation.duration = SOUND_FADE_OUT_DURATION
         animation.repeatCount = 1
         animation.addUpdateListener {
             soundPool.setVolume(soundId, it.animatedValue as Float, it.animatedValue as Float)
-            if(it.animatedValue as Float <= 0) {
+            if (it.animatedValue as Float <= 0) {
                 it.removeAllUpdateListeners()
             }
         }

@@ -19,6 +19,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
 
     private val onAngleChangeObservable: PublishSubject<Float> = PublishSubject.create()
     private val onTimeSetSubject: PublishSubject<Long> = PublishSubject.create()
+    private val onStateChange: BehaviorSubject<Boolean> = BehaviorSubject.create()
 
     private var fullSpinsCount = 0
     var lastAngle = 180f
@@ -26,6 +27,11 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     private var clockHandleAngleOffset: Float = 0f
     private var isClockHandDragged: Boolean = false
     private var isRunning = false
+        set(value) {
+            field = value
+            onStateChange.onNext(field)
+        }
+
     private var timeInSec: Long = 0
         set(value) {
             if (value >= 0) {
@@ -34,22 +40,11 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             } else {
                 field = 0
                 emitTime(0)
-                timerRunSubscription?.unsubscribe()
             }
         }
 
-    private var timerSetSubscription: Subscription? = null
-    private var timerRunSubscription: Subscription? = null
-
-    private fun timerSetObserveChanges() {
-        timerSetSubscription = subscribeTimerChanges(
-            getTouchAngleObservable())
-    }
-
-    private fun timerRunObserveChange() {
-        timerRunSubscription = subscribeTimerChanges(
-            getTimerAngleObservable())
-    }
+    private var timerSetSubscription = subscribeTimerChanges(getTouchAngleObservable())
+    private var timerRunSubscription = subscribeTimerChanges(getTimerAngleObservable())
 
     private fun subscribeTimerChanges(observable: Observable<Float>): Subscription {
         return observable.subscribeOn(Schedulers.computation())
@@ -85,6 +80,10 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         return onTimeSetSubject.asObservable()
     }
 
+    fun getStateObservable(): Observable<Boolean> {
+        return onStateChange
+    }
+
     private fun getTimerSecondsObservable(): Observable<Long> {
         return getTimerObservable()
             .map {
@@ -95,10 +94,10 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     private fun isHandleDragged(it: Float): Boolean {
-        return !isRunning && Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE
+        return Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE
     }
 
-    private fun updateFullSpins(angle: Float):Float {
+    private fun updateFullSpins(angle: Float): Float {
         if (isFullSpinnedForward(angle)) {
             fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
         } else if (isFullSpinnedBackwards(angle)) {
@@ -125,7 +124,9 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             && angleHelper.rotateAngle(angle, -180f) < 90
 
     private fun getTimerObservable() = Observable.interval(1, SECONDS)
+        .filter { isRunning }
         .timeInterval().map { it.intervalInMilliseconds }
+
 
     ///
 
@@ -139,19 +140,29 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
 
     fun onTouchUp() {
         if (isClockHandDragged) {
-            val angle = angleHelper.secondsToAngle(snapToMinutes(timeInSec))
+            val snappedTime = snapToMinutes(timeInSec)
+            val angle = angleHelper.secondsToAngle(snappedTime)
             emitAngle(angleHelper.rotateAngle(angle, -180f))
-        }
-        isClockHandDragged = false
-        if (fullSpinsCount < 0) {
-            fullSpinsCount = 0
+            isClockHandDragged = false
+            if (fullSpinsCount < 0) {
+                fullSpinsCount = 0
+            }
+
+            if (!isRunning && snappedTime > 0) {
+                start()
+            }
         }
     }
 
     fun onTouchDown(angle: Float) {
         isClockHandDragged = isHandleDragged(angle)
         if (isClockHandDragged) {
-            clockHandleAngleOffset = angle - lastAngle
+            if (!isRunning) {
+                clockHandleAngleOffset = angle - lastAngle
+            } else {
+                pause()
+                onTouchDown(angle)
+            }
         }
     }
 
@@ -162,14 +173,18 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     fun start() {
-        timerSetSubscription?.unsubscribe()
-        timerRunObserveChange()
+//        timerSetSubscription?.unsubscribe()
+        if (timerRunSubscription.isUnsubscribed) {
+            timerRunSubscription = subscribeTimerChanges(getTimerAngleObservable())
+        }
         isRunning = true
     }
 
     fun pause() {
-        timerRunSubscription?.unsubscribe()
-        timerSetObserveChanges()
+        if (!timerRunSubscription.isUnsubscribed) {
+            timerRunSubscription.unsubscribe()
+        }
+//        timerSetObserveChanges()
         isRunning = false
     }
 

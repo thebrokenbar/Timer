@@ -1,6 +1,7 @@
 package pl.brokenpipe.timer.screens.timer
 
 import android.animation.ValueAnimator
+import android.graphics.Typeface
 import android.media.AudioManager
 import android.media.SoundPool
 import android.view.WindowManager
@@ -11,6 +12,9 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.ScaleAnimation
 import kotlinx.android.synthetic.main.timer_view.clockFace
 import kotlinx.android.synthetic.main.timer_view.rlClockCenter
+import kotlinx.android.synthetic.main.timer_view.tvClockTimeLeft
+import kotlinx.android.synthetic.main.timer_view.tvClockTimeMiddle
+import kotlinx.android.synthetic.main.timer_view.tvClockTimeRight
 import kotlinx.android.synthetic.main.timer_view.vClockCenterBackground
 import pl.brokenpipe.timer.R
 import pl.brokenpipe.timer.base.BaseView
@@ -71,6 +75,15 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
         binding.viewModel = viewModel
         soundId = soundPool.load(activity, R.raw.alarm2, 1)
         viewModel.subscribeClockState(activity.clockFace.getStateObservable())
+
+        setupFonts()
+    }
+
+    private fun setupFonts() {
+        val colonTypeface = Typeface.createFromAsset(activity.assets, "Roboto-Thin.ttf")
+        activity.tvClockTimeMiddle.typeface = colonTypeface
+        activity.tvClockTimeLeft.setTypeface(activity.tvClockTimeRight.typeface, Typeface.BOLD)
+        activity.tvClockTimeRight.setTypeface(activity.tvClockTimeRight.typeface, Typeface.BOLD)
     }
 
     override fun getTimerSecondsObservable(): Observable<Long> {
@@ -101,5 +114,9 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     override fun letScreenOff() {
         activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    private fun timerTextViewSpannableConfiguration() {
+
     }
 }

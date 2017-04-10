@@ -73,7 +73,7 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
     override fun onViewBound(binding: TimerViewBinding) {
         viewModel = TimerViewModel(this)
         binding.viewModel = viewModel
-        soundId = soundPool.load(activity, R.raw.alarm2, 1)
+        soundId = soundPool.load(activity, R.raw.alarm3, 1)
         viewModel.subscribeClockState(activity.clockFace.getStateObservable())
 
         setupFonts()
@@ -114,9 +114,5 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     override fun letScreenOff() {
         activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    private fun timerTextViewSpannableConfiguration() {
-
     }
 }

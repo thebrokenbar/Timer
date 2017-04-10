@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.binding
+package pl.brokenpipe.timeboxing.binding
 
 import android.databinding.BindingAdapter
 import android.graphics.Typeface
@@ -6,8 +6,8 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.widget.TextView
-import pl.brokenpipe.timer.screens.timer.TimerTypefaceSpan
-import pl.brokenpipe.timer.ui.TimerTextView
+import pl.brokenpipe.timeboxing.screens.timer.TimerTypefaceSpan
+import pl.brokenpipe.timeboxing.ui.TimerTextView
 
 /**
  * Created by wierzchanowskig on 04.04.2017.

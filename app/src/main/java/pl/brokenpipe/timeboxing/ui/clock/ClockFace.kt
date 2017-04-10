@@ -1,7 +1,8 @@
-package pl.brokenpipe.timer.ui.clock
+package pl.brokenpipe.timeboxing.ui.clock
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Bitmap.Config.ARGB_8888
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Paint.Style.FILL
@@ -9,6 +10,7 @@ import android.graphics.Paint.Style.STROKE
 import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.PorterDuff.Mode
+import android.graphics.PorterDuff.Mode.DST_IN
 import android.graphics.PorterDuffXfermode
 import android.graphics.RadialGradient
 import android.graphics.RectF
@@ -18,7 +20,7 @@ import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
-import pl.brokenpipe.timer.ui.clock.interfaces.ClockFaceActions
+import pl.brokenpipe.timeboxing.ui.clock.interfaces.ClockFaceActions
 import rx.Observable
 
 class ClockFace(context: Context, attributeSet: AttributeSet)
@@ -45,7 +47,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     private val clockHand: Path = Path()
     private var cornerAngles: Array<Float> = emptyArray()
     private var cornerPoints: Array<PointF> = emptyArray()
-    private var faceDividersBitmap = Bitmap.createBitmap(1,1, Bitmap.Config.ARGB_8888)
+    private var faceDividersBitmap = Bitmap.createBitmap(1, 1, ARGB_8888)
 
     init {
         with(facePaint) {
@@ -69,7 +71,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         with(faceDividersMaskPaint) {
             style = FILL
             color = 0xffffffff.toInt()
-            xfermode = PorterDuffXfermode(Mode.DST_IN)
+            xfermode = PorterDuffXfermode(DST_IN)
         }
 
         setOnTouchListener(this)
@@ -166,7 +168,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     private fun setFaceDividers(clockRect: RectF): Bitmap {
         faceDividersBitmap.recycle()
         faceDividersBitmap = Bitmap.createBitmap(
-            clockRect.right.toInt(), clockRect.bottom.toInt(), Bitmap.Config.ARGB_8888)
+            clockRect.right.toInt(), clockRect.bottom.toInt(), ARGB_8888)
         val canvas = Canvas(faceDividersBitmap)
         val rectCenter = PointF(clockRect.right / 2f, clockRect.bottom / 2f)
         val maskRadius = Math.min(clockRect.bottom, clockRect.right)

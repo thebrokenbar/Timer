@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.ui.clock
+package pl.brokenpipe.timeboxing.ui.clock
 
 import android.graphics.PointF
 

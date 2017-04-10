@@ -1,7 +1,7 @@
-package pl.brokenpipe.timer.ui.clock
+package pl.brokenpipe.timeboxing.ui.clock
 
 import android.graphics.RectF
-import pl.brokenpipe.timer.ui.clock.interfaces.ClockFaceActions
+import pl.brokenpipe.timeboxing.ui.clock.interfaces.ClockFaceActions
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers

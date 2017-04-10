@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.ui
+package pl.brokenpipe.timeboxing.ui
 
 import android.content.Context
 import android.util.AttributeSet

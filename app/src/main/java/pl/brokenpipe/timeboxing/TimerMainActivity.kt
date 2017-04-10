@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer
+package pl.brokenpipe.timeboxing
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -7,7 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.RouterTransaction
-import pl.brokenpipe.timer.screens.timer.TimerView
+import pl.brokenpipe.timeboxing.screens.timer.TimerView
+import pl.brokenpipe.timeboxing.R.id
+import pl.brokenpipe.timeboxing.R.layout
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import timber.log.Timber.Tree
@@ -22,8 +24,8 @@ class TimerMainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.plant(DebugTree())
-        setContentView(R.layout.activity_timer_main)
-        container = findViewById(R.id.conductorContainer) as ViewGroup
+        setContentView(layout.activity_timer_main)
+        container = findViewById(id.conductorContainer) as ViewGroup
 
         val router = Conductor.attachRouter(this, container, savedInstanceState)
         if (!router.hasRootController()) {

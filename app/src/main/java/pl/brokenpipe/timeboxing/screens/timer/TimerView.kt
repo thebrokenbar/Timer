@@ -1,10 +1,13 @@
-package pl.brokenpipe.timer.screens.timer
+package pl.brokenpipe.timeboxing.screens.timer
 
 import android.animation.ValueAnimator
 import android.graphics.Typeface
 import android.media.AudioManager
 import android.media.SoundPool
+import android.media.SoundPool.Builder
+import android.os.Build.VERSION
 import android.view.WindowManager
+import android.view.WindowManager.LayoutParams
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.view.animation.AnimationSet
@@ -16,14 +19,16 @@ import kotlinx.android.synthetic.main.timer_view.tvClockTimeLeft
 import kotlinx.android.synthetic.main.timer_view.tvClockTimeMiddle
 import kotlinx.android.synthetic.main.timer_view.tvClockTimeRight
 import kotlinx.android.synthetic.main.timer_view.vClockCenterBackground
-import pl.brokenpipe.timer.R
-import pl.brokenpipe.timer.base.BaseView
-import pl.brokenpipe.timer.base.Layout
-import pl.brokenpipe.timer.databinding.TimerViewBinding
+import pl.brokenpipe.timeboxing.R
+import pl.brokenpipe.timeboxing.base.BaseView
+import pl.brokenpipe.timeboxing.base.Layout
+import pl.brokenpipe.timeboxing.R.layout
+import pl.brokenpipe.timeboxing.R.raw
+import pl.brokenpipe.timeboxing.databinding.TimerViewBinding
 import rx.Observable
 import timber.log.Timber
 
-@Layout(R.layout.timer_view)
+@Layout(layout.timer_view)
 class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     private val SOUND_FADE_OUT_DURATION = 200L
@@ -31,7 +36,7 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
 
     lateinit var viewModel: TimerViewModel
     @Suppress("DEPRECATION")
-    val soundPool: SoundPool = if (android.os.Build.VERSION.SDK_INT >= 21) SoundPool.Builder().build()
+    val soundPool: SoundPool = if (VERSION.SDK_INT >= 21) Builder().build()
     else SoundPool(2, AudioManager.STREAM_MUSIC, 0)
 
     var soundId: Int = 0
@@ -73,7 +78,7 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
     override fun onViewBound(binding: TimerViewBinding) {
         viewModel = TimerViewModel(this)
         binding.viewModel = viewModel
-        soundId = soundPool.load(activity, R.raw.alarm3, 1)
+        soundId = soundPool.load(activity, raw.alarm3, 1)
         viewModel.subscribeClockState(activity.clockFace.getStateObservable())
 
         setupFonts()
@@ -109,10 +114,10 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun keepScreenOn() {
-        activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        activity.window.addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun letScreenOff() {
-        activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        activity.window.clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 }

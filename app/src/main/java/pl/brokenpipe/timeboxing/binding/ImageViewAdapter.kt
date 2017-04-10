@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.binding
+package pl.brokenpipe.timeboxing.binding
 
 import android.databinding.BindingAdapter
 import android.graphics.drawable.Drawable

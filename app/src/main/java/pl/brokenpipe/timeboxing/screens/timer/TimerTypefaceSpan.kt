@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.screens.timer
+package pl.brokenpipe.timeboxing.screens.timer
 
 import android.graphics.Paint
 import android.graphics.Typeface

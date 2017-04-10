@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.ui.clock.interfaces
+package pl.brokenpipe.timeboxing.ui.clock.interfaces
 
 import android.graphics.RectF
 

@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.screens.timer
+package pl.brokenpipe.timeboxing.screens.timer
 
 /**
  * Created by wierzchanowskig on 06.04.2017.

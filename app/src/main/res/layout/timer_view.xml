@@ -5,13 +5,13 @@
     <data>
         <variable
             name="viewModel"
-            type="pl.brokenpipe.timer.screens.timer.TimerViewModel"/>
+            type="pl.brokenpipe.timeboxing.screens.timer.TimerViewModel"/>
     </data>
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <pl.brokenpipe.timer.ui.clock.ClockFace
+        <pl.brokenpipe.timeboxing.ui.clock.ClockFace
             tools:visibility="gone"
             android:id="@+id/clockFace"
             android:layout_width="0dp"

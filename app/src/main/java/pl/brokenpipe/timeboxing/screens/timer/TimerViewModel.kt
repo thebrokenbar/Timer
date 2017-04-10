@@ -1,9 +1,9 @@
-package pl.brokenpipe.timer.screens.timer
+package pl.brokenpipe.timeboxing.screens.timer
 
 import android.databinding.BaseObservable
 import android.databinding.Bindable
 import android.text.Spannable
-import pl.brokenpipe.timer.BR
+import pl.brokenpipe.timeboxing.BR
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import timber.log.Timber

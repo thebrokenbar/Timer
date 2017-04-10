@@ -3,7 +3,7 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context="pl.brokenpipe.timer.TimerMainActivity">
+             tools:context="pl.brokenpipe.timeboxing.pl.brokenpipe.timeboxing.TimerMainActivity">
     <FrameLayout
         android:id="@+id/conductorContainer"
         android:layout_width="match_parent"

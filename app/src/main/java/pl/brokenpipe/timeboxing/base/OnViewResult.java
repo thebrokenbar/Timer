@@ -1,4 +1,4 @@
-package pl.brokenpipe.timer.base;
+package pl.brokenpipe.timeboxing.base;
 
 import android.os.Bundle;
 

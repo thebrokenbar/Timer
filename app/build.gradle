@@ -24,11 +24,22 @@ android {
     versionCode 3
     versionName "0.1"
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    buildConfigField "boolean", "FAST", "false"
   }
   buildTypes {
     release {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+
+    debug {
+
+    }
+
+    fast_timer {
+      initWith debug
+      buildConfigField "boolean", "FAST", "true"
     }
   }
   productFlavors {

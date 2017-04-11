@@ -1,6 +1,6 @@
 package pl.brokenpipe.timeboxing.ui.clock
 
-import android.graphics.RectF
+import pl.brokenpipe.timeboxing.BuildConfig
 import pl.brokenpipe.timeboxing.ui.clock.interfaces.ClockFaceActions
 import rx.Observable
 import rx.Subscription
@@ -10,10 +10,10 @@ import rx.subjects.BehaviorSubject
 import rx.subjects.PublishSubject
 import timber.log.Timber
 import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
 
 class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceActions) {
 
+    private val TIMER_FLOW_SPEED: Long = if(BuildConfig.FAST) 60 else 1
     private val HANDLE_DRAG_ANGLE = 15
     private val MAX_FULL_SPINS = Int.MAX_VALUE
 
@@ -94,8 +94,15 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     private fun isHandleDragged(it: Float): Boolean {
-        return (Math.abs(lastAngle - it) < HANDLE_DRAG_ANGLE)
-            || (Math.abs(lastAngle - it) > 360 - HANDLE_DRAG_ANGLE)
+        val timerAngle = getCurrentTimeAngle()
+        return (Math.abs(timerAngle - it) < HANDLE_DRAG_ANGLE)
+            || (Math.abs(timerAngle - it) > 360 - HANDLE_DRAG_ANGLE)
+    }
+
+    private fun getCurrentTimeAngle(): Float {
+        var timerAngle = angleHelper.secondsToAngle(timeInSec)
+        timerAngle = angleHelper.rotateAngle(timerAngle, -180f)
+        return timerAngle
     }
 
     private fun updateFullSpins(angle: Float): Float {
@@ -124,7 +131,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         angleHelper.rotateAngle(lastAngle, -180f) > 270
             && angleHelper.rotateAngle(angle, -180f) < 90
 
-    private fun getTimerObservable() = Observable.interval(1, SECONDS)
+    private fun getTimerObservable() = Observable.interval(1000 / TIMER_FLOW_SPEED, MILLISECONDS)
         .filter { isRunning }
         .timeInterval().map { it.intervalInMilliseconds }
 
@@ -159,7 +166,8 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         isClockHandDragged = isHandleDragged(angle)
         if (isClockHandDragged) {
             if (!isRunning) {
-                clockHandleAngleOffset = angle - lastAngle
+                clockHandleAngleOffset = angle - getCurrentTimeAngle()
+
             } else {
                 pause()
                 onTouchDown(angle)

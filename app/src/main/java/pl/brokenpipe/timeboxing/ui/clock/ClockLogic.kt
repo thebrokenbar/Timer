@@ -131,9 +131,9 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         angleHelper.rotateAngle(lastAngle, -180f) > 270
             && angleHelper.rotateAngle(angle, -180f) < 90
 
-    private fun getTimerObservable() = Observable.interval(1000 / TIMER_FLOW_SPEED, MILLISECONDS)
-        .filter { isRunning }
-        .timeInterval().map { it.intervalInMilliseconds }
+//    private fun getTimerObservable() = Observable.interval(1000 / TIMER_FLOW_SPEED, MILLISECONDS)
+//        .filter { isRunning }
+//        .timeInterval().map { it.intervalInMilliseconds }
 
 
     ///

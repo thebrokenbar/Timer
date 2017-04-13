@@ -1,6 +1,11 @@
 package pl.brokenpipe.timeboxing.ui.clock
 
+import android.app.Service
+import android.content.ComponentName
 import android.content.Context
+import android.content.Context.BIND_AUTO_CREATE
+import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config.ARGB_8888
 import android.graphics.Canvas
@@ -15,11 +20,13 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader.TileMode.CLAMP
+import android.os.IBinder
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
+import pl.brokenpipe.timeboxing.backgroundservice.TimerService
 import pl.brokenpipe.timeboxing.ui.clock.interfaces.ClockFaceActions
 import rx.Observable
 
@@ -241,4 +248,19 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     fun getTimerObservable(): Observable<Long> {
         return logic.getOnTimeChangeObservable()
     }
+
+    private fun connectService() {
+        val serviceIntent: Intent = Intent(context, TimerService::class.java)
+
+        val serviceConnected = context.bindService(serviceIntent, object : ServiceConnection {
+            override fun onServiceDisconnected(componentName: ComponentName?) {
+
+            }
+
+            override fun onServiceConnected(componentName: ComponentName?, binder: IBinder?) {
+                logic.
+            }
+        }, BIND_AUTO_CREATE)
+    }
 }
+

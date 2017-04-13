@@ -41,6 +41,11 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
             field = value
             notifyPropertyChanged(BR.clockRunning)
             pauseButtonVisibility = !isClockRunning && time.hours + time.minutes + time.seconds > 0L
+            if(value) {
+                timerViewActions.keepScreenOn()
+            } else {
+                timerViewActions.letScreenOff()
+            }
         }
 
     private var timeInSec = 0L
@@ -89,13 +94,11 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
 
     private fun pauseTimer() {
         timerViewActions.pauseTimer()
-        timerViewActions.letScreenOff()
     }
 
     private fun startTimer() {
         if (timeInSec > 0L) {
             timerViewActions.startTimer()
-            timerViewActions.keepScreenOn()
         }
     }
 

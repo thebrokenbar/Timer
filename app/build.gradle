@@ -21,8 +21,8 @@ android {
     applicationId "pl.brokenpipe.timeboxing"
     minSdkVersion 16
     targetSdkVersion 25
-    versionCode 3
-    versionName "0.1"
+    versionCode 4
+    versionName "1.0"
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     buildConfigField "boolean", "FAST", "false"

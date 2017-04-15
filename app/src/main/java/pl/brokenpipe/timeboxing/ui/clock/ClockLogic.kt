@@ -32,8 +32,8 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             onStateChange.onNext(field)
         }
 
-    private var timeInSec: Long = 0
-        set(value) {
+    var timeInSec: Long = 0
+        private set(value) {
             if (value >= 0) {
                 field = value
                 emitTime(value)
@@ -182,7 +182,6 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     fun start() {
-//        timerSetSubscription?.unsubscribe()
         if (timerRunSubscription.isUnsubscribed) {
             timerRunSubscription = subscribeTimerChanges(getTimerAngleObservable())
         }
@@ -193,7 +192,6 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         if (!timerRunSubscription.isUnsubscribed) {
             timerRunSubscription.unsubscribe()
         }
-//        timerSetObserveChanges()
         isRunning = false
     }
 

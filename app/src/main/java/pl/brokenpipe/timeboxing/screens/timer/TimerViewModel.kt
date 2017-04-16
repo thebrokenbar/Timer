@@ -69,8 +69,10 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
     @get:Bindable
     var timeRightValue: String = "00"
         get() {
-            if (time.hours > 0) return time.minutesToString()
-            else return time.secondsToString()
+            if (time.hours > 0)
+                return time.minutesToString()
+            else
+                return time.secondsToString()
         }
 
     @get:Bindable

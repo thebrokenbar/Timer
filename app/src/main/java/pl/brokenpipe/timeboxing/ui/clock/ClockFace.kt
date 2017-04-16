@@ -161,7 +161,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         clockRect.set(0f, 0f, w.toFloat(), h.toFloat())
         faceCenter = PointF(w / 2f, h / 2f)
         calculateCorners(clockRect)
-        setClockFaceShape(angleHelper.rotateAngle(angleHelper.secondsToAngle(logic.timeInSec), -180f))
+        setClockFaceShape(angleHelper.secondsToAngle(logic.timeInSec))
         update()
     }
 

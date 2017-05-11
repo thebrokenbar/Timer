@@ -109,12 +109,12 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
                 return true
             }
             MotionEvent.ACTION_DOWN -> {
-                val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
+                val angle = 360 - angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
                 logic.onTouchDown(angle)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
+                val angle = 360 - angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
                 logic.onTouchMove(angle)
                 return true
             }
@@ -131,6 +131,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
 
         cornerPoints = arrayOf(firstCornerPoint, secondCornerPoint, thirdCornerPoint,
                                fourthCornerPoint)
+        cornerPoints.reverse()
 
         val firstCornerAngle = angleHelper.rotateAngle(
             angleHelper.getAngle(rectCenter, firstCornerPoint), -180f)
@@ -143,12 +144,13 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
 
         cornerAngles = arrayOf(firstCornerAngle, secondCornerAngle, thirdCornerAngle,
                                fourthCornerAngle)
+
     }
 
     private fun getIncludedCornersPoints(clockHandAngle: Float): Array<PointF> {
         var result: Array<PointF> = emptyArray()
         for (i in cornerAngles.size - 1 downTo 0) {
-            if (angleHelper.rotateAngle(clockHandAngle, -180f) > cornerAngles[i] ) {
+            if (angleHelper.rotateAngle(clockHandAngle, 180f) > cornerAngles[i] ) {
                 result = cornerPoints.copyOfRange(0, i + 1)
                 break
             }
@@ -215,7 +217,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
             faceShape.lineTo(point.x, point.y)
         }
 
-        val lineEnd = getLineEnd(faceCenter.x, faceCenter.y, angle, rectDiagonalLength)
+        val lineEnd = getLineEnd(faceCenter.x, faceCenter.y, 360 - angle, rectDiagonalLength)
         faceShape.lineTo(lineEnd.x, lineEnd.y)
 
         faceShape.lineTo(faceCenter.x, faceCenter.y)

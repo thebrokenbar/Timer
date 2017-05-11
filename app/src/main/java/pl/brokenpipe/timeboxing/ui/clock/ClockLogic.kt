@@ -108,6 +108,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         Timber.d("angle: %.2f lastAngle: %.2f", angle, lastAngle)
         if (isFullSpinnedForward(angle)) {
             fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
+            clockFaceActions.setClockFaceSide(Side.LEFT)
         } else if (isFullSpinnedBackwards(angle)) {
             fullSpinsCount--
         }

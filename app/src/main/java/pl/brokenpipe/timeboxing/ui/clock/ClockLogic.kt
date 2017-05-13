@@ -1,6 +1,8 @@
 package pl.brokenpipe.timeboxing.ui.clock
 
 import pl.brokenpipe.timeboxing.BuildConfig
+import pl.brokenpipe.timeboxing.ui.clock.Side.LEFT
+import pl.brokenpipe.timeboxing.ui.clock.Side.RIGHT
 import pl.brokenpipe.timeboxing.ui.clock.interfaces.ClockFaceActions
 import rx.Observable
 import rx.Subscription
@@ -8,12 +10,14 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import rx.subjects.BehaviorSubject
 import rx.subjects.PublishSubject
+import rx.subscriptions.CompositeSubscription
 import timber.log.Timber
+import java.io.Closeable
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceActions) {
+class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceActions) : Closeable {
 
-    private val TIMER_FLOW_SPEED: Long = if(BuildConfig.FAST) 60 else 1
+    private val TIMER_FLOW_SPEED: Long = if (BuildConfig.FAST) 60 else 1
     private val HANDLE_DRAG_ANGLE = 15
     private val MAX_FULL_SPINS = Int.MAX_VALUE
 
@@ -31,28 +35,37 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             field = value
             onStateChange.onNext(field)
         }
+    var clockSpinSide: Side = LEFT
+        private set(value) {
+            field = value
+            clockFaceActions.changeSide(field)
+            Timber.d("clockSpinSide = %s", field.name)
+        }
 
     var timeInSec: Long = 0
         private set(value) {
             if (value >= 0) {
-                field = value
                 emitTime(value)
+                field = value
             } else {
                 field = 0
                 emitTime(0)
             }
         }
 
+    //
     private var timerSetSubscription = subscribeTimerChanges(getTouchAngleObservable())
     private var timerRunSubscription = subscribeTimerChanges(getTimerAngleObservable())
+    private val compositeSubscription =
+        CompositeSubscription(timerSetSubscription, timerRunSubscription)
 
     private fun subscribeTimerChanges(observable: Observable<Float>): Subscription {
         return observable.subscribeOn(Schedulers.computation())
-            .sample(8, MILLISECONDS)
             .filter({ isRunning || isClockHandDragged })
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ angle ->
+            .subscribe({
                            clockFaceActions.setClockFacePaints(fullSpinsCount)
+                           val angle = it
                            clockFaceActions.setClockFaceShape(angle)
                            clockFaceActions.update()
                        }, { throwable -> Timber.e(throwable) })
@@ -62,7 +75,8 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         return onAngleChangeObservable
             .map { updateFullSpins(it) }
             .doOnNext {
-                val seconds = angleHelper.angleToSeconds(it, fullSpinsCount)
+                val angle = if(clockSpinSide == RIGHT) 360 - it else it
+                val seconds = angleHelper.angleToSeconds(angle, fullSpinsCount)
                 timeInSec = snapToMinutes(seconds)
             }
     }
@@ -72,9 +86,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     private fun getTimerAngleObservable(): Observable<Float> {
-        return getTimerSecondsObservable().map {
-            angleHelper.secondsToAngle(it)
-        }
+        return getTimerSecondsObservable().map { getTimeByAngleWithValidSide(it) }
     }
 
     fun getOnTimeChangeObservable(): Observable<Long> {
@@ -100,20 +112,48 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             || (Math.abs(timerAngle - it) > 360 - HANDLE_DRAG_ANGLE)
     }
 
+    private fun getTimeByAngleWithValidSide(timeInSec: Long): Float {
+        return if(clockSpinSide == RIGHT) 360 -angleHelper.secondsToAngle(timeInSec)
+        else angleHelper.secondsToAngle(timeInSec)
+    }
+
     private fun getCurrentTimeAngle(): Float {
-        return angleHelper.secondsToAngle(timeInSec)
+        return getTimeByAngleWithValidSide(timeInSec)
     }
 
     private fun updateFullSpins(angle: Float): Float {
         Timber.d("angle: %.2f lastAngle: %.2f", angle, lastAngle)
-        if (isFullSpinnedForward(angle)) {
-            fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
-        } else if (isFullSpinnedBackwards(angle)) {
-            fullSpinsCount--
+
+        if(angle > 90 && angle < 270) {
+            if (isFullSpinnedLeft(angle)) {
+                if (clockSpinSide == LEFT) {
+                    fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
+                } else if (clockSpinSide == RIGHT) {
+                    fullSpinsCount--
+                    if (fullSpinsCount < 0) {
+                        clockSpinSide = LEFT
+                        fullSpinsCount = 0
+                    }
+                } else {
+                    clockSpinSide = LEFT
+                }
+            } else if (isFullSpinnedRight(angle)) {
+                if (clockSpinSide == RIGHT) {
+                    fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
+                } else if (clockSpinSide == LEFT) {
+                    fullSpinsCount--
+                    if (fullSpinsCount < 0) {
+                        clockSpinSide = RIGHT
+                        fullSpinsCount = 0
+                    }
+                } else {
+                    clockSpinSide = RIGHT
+                }
+            }
         }
 
         lastAngle = angle
-        Timber.d("full spins: %d", fullSpinsCount)
+        Timber.d("full spins: %d, side: %s", fullSpinsCount, clockSpinSide.name)
 
         if (fullSpinsCount < 0) {
             fullSpinsCount = -1
@@ -123,13 +163,17 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         return angle
     }
 
-    private fun isFullSpinnedBackwards(angle: Float) =
-        angleHelper.rotateAngle(lastAngle, -180f) < 90
-            && angleHelper.rotateAngle(angle, -180f) > 270
+    private fun isFullSpinnedRight(angle: Float): Boolean {
+        val last = angleHelper.rotateAngle(lastAngle, -180f)
+        val current = angleHelper.rotateAngle(angle, -180f)
+        return last < 90 && current > 270
+    }
 
-    private fun isFullSpinnedForward(angle: Float) =
-        angleHelper.rotateAngle(lastAngle, -180f) > 270
-            && angleHelper.rotateAngle(angle, -180f) < 90
+    private fun isFullSpinnedLeft(angle: Float): Boolean {
+        val last = angleHelper.rotateAngle(lastAngle, -180f)
+        val current = angleHelper.rotateAngle(angle, -180f)
+        return last > 270 && current < 90
+    }
 
     private fun getTimerObservable() = Observable.interval(1000 / TIMER_FLOW_SPEED, MILLISECONDS)
         .filter { isRunning }
@@ -148,7 +192,8 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     fun onTouchUp() {
         if (isClockHandDragged) {
             val snappedTime = snapToMinutes(timeInSec)
-            emitAngle(angleHelper.secondsToAngle(snappedTime))
+            val angle = getTimeByAngleWithValidSide(snappedTime)
+            emitAngle(angle)
             isClockHandDragged = false
             if (fullSpinsCount < 0) {
                 fullSpinsCount = 0
@@ -163,13 +208,12 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     fun onTouchDown(angle: Float) {
         isClockHandDragged = isHandleDragged(angle)
         if (isClockHandDragged) {
-            if (!isRunning) {
+//            if (!isRunning) {
                 clockHandleAngleOffset = angle - getCurrentTimeAngle()
-                lastAngle = angleHelper.secondsToAngle(timeInSec)
-            } else {
+                lastAngle = getTimeByAngleWithValidSide(timeInSec)
                 pause()
-                onTouchDown(angle)
-            }
+                //onTouchDown(angle)
+//            }
         }
     }
 
@@ -191,6 +235,10 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             timerRunSubscription.unsubscribe()
         }
         isRunning = false
+    }
+
+    override fun close() {
+        compositeSubscription.clear()
     }
 
 }

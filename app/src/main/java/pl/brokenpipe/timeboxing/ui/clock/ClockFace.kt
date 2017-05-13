@@ -20,6 +20,7 @@ import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
+import pl.brokenpipe.timeboxing.ui.clock.Side.RIGHT
 import pl.brokenpipe.timeboxing.ui.clock.interfaces.ClockFaceActions
 import rx.Observable
 
@@ -110,12 +111,12 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
             }
             MotionEvent.ACTION_DOWN -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                logic.onTouchDown(angle)
+                logic.onTouchDown(Math.abs(angle))
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                logic.onTouchMove(angle)
+                logic.onTouchMove(Math.abs(angle))
                 return true
             }
         }
@@ -131,6 +132,10 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
 
         cornerPoints = arrayOf(firstCornerPoint, secondCornerPoint, thirdCornerPoint,
                                fourthCornerPoint)
+
+//        if (isClockRightSided()) {
+//            cornerPoints.reverse()
+//        }
 
         val firstCornerAngle = angleHelper.rotateAngle(
             angleHelper.getAngle(rectCenter, firstCornerPoint), -180f)
@@ -149,10 +154,15 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         var result: Array<PointF> = emptyArray()
         for (i in cornerAngles.size - 1 downTo 0) {
             if (angleHelper.rotateAngle(clockHandAngle, -180f) > cornerAngles[i] ) {
-                result = cornerPoints.copyOfRange(0, i + 1)
+                val rangeStart = if(isClockRightSided()) i else 0
+                val rangeEnd = if(isClockRightSided()) cornerAngles.size else i + 1
+                result = cornerPoints.copyOfRange(rangeStart, rangeEnd)
+                if(isClockRightSided()) result.reverse()
                 break
             }
         }
+        if(isClockRightSided() && result.isEmpty())
+            result = cornerPoints.reversedArray()
         return result
     }
 
@@ -161,8 +171,13 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         clockRect.set(0f, 0f, w.toFloat(), h.toFloat())
         faceCenter = PointF(w / 2f, h / 2f)
         calculateCorners(clockRect)
-        setClockFaceShape(angleHelper.secondsToAngle(logic.timeInSec))
+        val angle =  angleHelper.secondsToAngle(logic.timeInSec)
+        setClockFaceShape(angle)
         update()
+    }
+
+    private fun isClockRightSided(): Boolean {
+        return logic.clockSpinSide == RIGHT
     }
 
     private fun setFaceDividers(clockRect: RectF): Bitmap {
@@ -215,7 +230,9 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
             faceShape.lineTo(point.x, point.y)
         }
 
-        val lineEnd = getLineEnd(faceCenter.x, faceCenter.y, angle, rectDiagonalLength)
+        val lineEnd = getLineEnd(faceCenter.x, faceCenter.y,
+                                 angle ,
+                                 rectDiagonalLength)
         faceShape.lineTo(lineEnd.x, lineEnd.y)
 
         faceShape.lineTo(faceCenter.x, faceCenter.y)
@@ -238,7 +255,15 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         }
     }
 
+    override fun changeSide(side: Side) {
+        calculateCorners(clockRect)
+    }
+
     fun getTimerObservable(): Observable<Long> {
         return logic.getOnTimeChangeObservable()
+    }
+
+    fun dispose() {
+        logic.close()
     }
 }

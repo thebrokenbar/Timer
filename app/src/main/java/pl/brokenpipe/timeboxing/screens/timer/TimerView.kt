@@ -6,7 +6,6 @@ import android.media.AudioManager
 import android.media.SoundPool
 import android.media.SoundPool.Builder
 import android.os.Build.VERSION
-import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -19,9 +18,8 @@ import kotlinx.android.synthetic.main.timer_view.tvClockTimeLeft
 import kotlinx.android.synthetic.main.timer_view.tvClockTimeMiddle
 import kotlinx.android.synthetic.main.timer_view.tvClockTimeRight
 import kotlinx.android.synthetic.main.timer_view.vClockCenterBackground
-import pl.brokenpipe.timeboxing.R
-import pl.brokenpipe.timeboxing.base.BaseView
-import pl.brokenpipe.timeboxing.base.Layout
+import pl.brokenpipe.boundcontroller.BoundController
+import pl.brokenpipe.boundcontroller.Layout
 import pl.brokenpipe.timeboxing.R.layout
 import pl.brokenpipe.timeboxing.R.raw
 import pl.brokenpipe.timeboxing.databinding.TimerViewBinding
@@ -29,7 +27,7 @@ import rx.Observable
 import timber.log.Timber
 
 @Layout(layout.timer_view)
-class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
+class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
 
     private val SOUND_FADE_OUT_DURATION = 200L
     private var timeFlowAnimation = AnimationSet(true)
@@ -68,7 +66,6 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
     override fun pauseTimer() {
         activity.clockFace.pause()
         activity.rlClockCenter.clearAnimation()
-
     }
 
     override fun animateTimeFlow() {
@@ -82,6 +79,10 @@ class TimerView : BaseView<TimerViewBinding>(), TimerViewActions {
         viewModel.subscribeClockState(activity.clockFace.getStateObservable())
 
         setupFonts()
+    }
+
+    override fun onViewUnbound(binding: TimerViewBinding) {
+        activity.clockFace.dispose()
     }
 
     private fun setupFonts() {

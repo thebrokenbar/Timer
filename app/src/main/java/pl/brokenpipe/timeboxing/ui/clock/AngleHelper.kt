@@ -1,6 +1,7 @@
 package pl.brokenpipe.timeboxing.ui.clock
 
 import android.graphics.PointF
+import pl.brokenpipe.timeboxing.ui.clock.Side.RIGHT
 
 open class AngleHelper {
     private val ONE_SECOND_ANGLE = 0.1f
@@ -33,5 +34,10 @@ open class AngleHelper {
         return if (angle >= 360) angle - (angle - (angle % 360))
         else if (angle < 0) angle + 360f
         else angle
+    }
+
+    fun getAngleByTimeWithValidSide(timeInSec: Long, clockSide: Side): Float {
+        return if(clockSide == RIGHT) 360 - secondsToAngle(timeInSec)
+        else secondsToAngle(timeInSec)
     }
 }

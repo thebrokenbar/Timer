@@ -9,7 +9,6 @@ import android.graphics.Paint.Style.FILL
 import android.graphics.Paint.Style.STROKE
 import android.graphics.Path
 import android.graphics.PointF
-import android.graphics.PorterDuff.Mode
 import android.graphics.PorterDuff.Mode.DST_IN
 import android.graphics.PorterDuffXfermode
 import android.graphics.RadialGradient
@@ -171,7 +170,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         clockRect.set(0f, 0f, w.toFloat(), h.toFloat())
         faceCenter = PointF(w / 2f, h / 2f)
         calculateCorners(clockRect)
-        val angle =  angleHelper.secondsToAngle(logic.timeInSec)
+        val angle =  angleHelper.getAngleByTimeWithValidSide(logic.timeInSec, logic.clockSpinSide)
         setClockFaceShape(angle)
         update()
     }
@@ -259,11 +258,21 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         calculateCorners(clockRect)
     }
 
+    fun getSide() = logic.clockSpinSide
+
+    fun setSide(side: Side) {
+        logic.clockSpinSide = side
+    }
+
     fun getTimerObservable(): Observable<Long> {
         return logic.getOnTimeChangeObservable()
     }
 
     fun dispose() {
         logic.close()
+    }
+
+    fun setTime(seconds: Long) {
+        logic.setTime(seconds)
     }
 }

@@ -14,9 +14,13 @@ data class Time(var hours: Long, var minutes: Long, var seconds: Long) {
     }
 
     fun secondsToString(): String {
-        if(seconds + hours + minutes == 0L)
+        if(isZero())
             return "0"
         else
             return "%02d".format(seconds)
     }
+
+    fun getTotalSeconds() = seconds + hours * 60 * 60 + minutes * 60
+
+    fun isZero(): Boolean = seconds + hours + minutes == 0L
 }

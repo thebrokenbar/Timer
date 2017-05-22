@@ -32,7 +32,7 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
     private val SOUND_FADE_OUT_DURATION = 200L
     private var timeFlowAnimation = AnimationSet(true)
 
-    lateinit var viewModel: TimerViewModel
+    var viewModel: TimerViewModel? = null
     @Suppress("DEPRECATION")
     val soundPool: SoundPool = if (VERSION.SDK_INT >= 21) Builder().build()
     else SoundPool(2, AudioManager.STREAM_MUSIC, 0)
@@ -73,16 +73,25 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun onViewBound(binding: TimerViewBinding) {
-        viewModel = TimerViewModel(this)
+        if(viewModel == null) {
+            viewModel = TimerViewModel(this)
+        }
         binding.viewModel = viewModel
+        binding.viewModel.subscribeChanges()
         soundId = soundPool.load(activity, raw.alarm3, 1)
-        viewModel.subscribeClockState(activity.clockFace.getStateObservable())
-
+        binding.viewModel.subscribeClockState(activity.clockFace.getStateObservable())
+        if(!binding.viewModel.time.isZero()){
+            activity.clockFace.setTime(binding.viewModel.time.getTotalSeconds())
+            startTimer()
+        }
         setupFonts()
+        activity.clockFace.setSide(binding.viewModel.clockSpinSide)
     }
 
     override fun onViewUnbound(binding: TimerViewBinding) {
         activity.clockFace.dispose()
+        binding.viewModel.clockSpinSide = activity.clockFace.getSide()
+        binding.viewModel.dispose()
     }
 
     private fun setupFonts() {

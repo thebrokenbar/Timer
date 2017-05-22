@@ -4,35 +4,40 @@ import android.databinding.BaseObservable
 import android.databinding.Bindable
 import android.text.Spannable
 import pl.brokenpipe.timeboxing.BR
+import pl.brokenpipe.timeboxing.ui.clock.Side
+import pl.brokenpipe.timeboxing.ui.clock.Side.LEFT
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
+import rx.subscriptions.CompositeSubscription
 import timber.log.Timber
 
 class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() {
 
-    init {
-        timerViewActions.getTimerSecondsObservable()
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext {
-                timeInSec = it
-                time = secondsToTime(it)
-                timerLeftValueVisibility = time.hours > 0L || time.minutes > 0L
-                pauseButtonVisibility = !isClockRunning && time.hours + time.minutes + time.seconds > 0L
-                if (it == 0L && isClockRunning) {
-                    timerViewActions.playEndSound()
-                    pauseTimer()
-                } else {
-                    if (isClockRunning) {
-                        try {
-                            timerViewActions.animateTimeFlow()
-                        } catch (e: IllegalStateException) {
-                            Timber.d(e)
-                        }
-                    }
-                }
-            }
-            .onErrorReturn { timeInSec }
-            .subscribe()
+    private val compositeSubscription = CompositeSubscription()
+
+    fun subscribeChanges() {
+        compositeSubscription.add(timerViewActions.getTimerSecondsObservable()
+                                      .observeOn(AndroidSchedulers.mainThread())
+                                      .doOnNext {
+                                          timeInSec = it
+                                          time = secondsToTime(it)
+                                          timerLeftValueVisibility = time.hours > 0L || time.minutes > 0L
+                                          pauseButtonVisibility = !isClockRunning && time.hours + time.minutes + time.seconds > 0L
+                                          if (it == 0L && isClockRunning) {
+                                              timerViewActions.playEndSound()
+                                              pauseTimer()
+                                          } else {
+                                              if (isClockRunning) {
+                                                  try {
+                                                      timerViewActions.animateTimeFlow()
+                                                  } catch (e: IllegalStateException) {
+                                                      Timber.d(e)
+                                                  }
+                                              }
+                                          }
+                                      }
+                                      .onErrorReturn { timeInSec }
+                                      .subscribe())
     }
 
     @get:Bindable
@@ -49,6 +54,7 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
         }
 
     private var timeInSec = 0L
+    var clockSpinSide: Side = LEFT
 
     @get:Bindable
     var time: Time = Time(0, 0, 0)
@@ -113,6 +119,10 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
     }
 
     fun subscribeClockState(stateObservable: Observable<Boolean>) {
-        stateObservable.subscribe({ isClockRunning = it })
+        compositeSubscription.add(stateObservable.subscribe({ isClockRunning = it }))
+    }
+
+    fun dispose() {
+        compositeSubscription.clear()
     }
 }

@@ -30,16 +30,16 @@
         <View
             android:id="@+id/vClockCenterBackground"
             android:background="@color/clock_background"
-            android:layout_width="@dimen/timerClockCenterSize"
-            android:layout_height="@dimen/timerClockCenterSize"
+            android:layout_width="@dimen/timerClockCenterSizeLandscape"
+            android:layout_height="@dimen/timerClockCenterSizeLandscape"
             app:layout_constraintRight_toRightOf="@+id/rlClockCenter"
             app:layout_constraintLeft_toLeftOf="@+id/rlClockCenter"
             app:layout_constraintBottom_toBottomOf="@+id/rlClockCenter"
             app:layout_constraintTop_toTopOf="@+id/rlClockCenter" />
         <RelativeLayout
             android:id="@+id/rlClockCenter"
-            android:layout_width="@dimen/timerClockCenterSize"
-            android:layout_height="@dimen/timerClockCenterSize"
+            android:layout_width="@dimen/timerClockCenterSizeLandscape"
+            android:layout_height="@dimen/timerClockCenterSizeLandscape"
             android:layout_marginBottom="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
@@ -75,7 +75,7 @@
                     android:textStyle="bold"
                     tools:text="24"
                     android:textColor="@color/text_color_primary_dark"
-                    android:textSize="@dimen/timerClockFontSize"
+                    android:textSize="@dimen/timerClockFontSizeLandscape"
                     android:text="@{viewModel.timeLeftValue}"/>
                 <TextView
                     android:visibility="@{viewModel.timerLeftValueVisibility}"
@@ -83,14 +83,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_color_primary_dark"
-                    android:textSize="@dimen/timerClockFontSize"
+                    android:textSize="@dimen/timerClockFontSizeLandscape"
                     android:text=":"/>
                 <TextView
                     android:id="@+id/tvClockTimeRight"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_color_primary_dark"
-                    android:textSize="@dimen/timerClockFontSize"
+                    android:textSize="@dimen/timerClockFontSizeLandscape"
                     android:textStyle="bold"
                     tools:text="59"
                     android:text="@{viewModel.timeRightValue}"/>

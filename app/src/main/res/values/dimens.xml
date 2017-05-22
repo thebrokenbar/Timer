@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="timerClockCenterSize">140dp</dimen>
+    <dimen name="timerClockFontSize">42sp</dimen>
+    <dimen name="timerClockCenterSizeLandscape">240dp</dimen>
+    <dimen name="timerClockFontSizeLandscape">82sp</dimen>
 </resources>

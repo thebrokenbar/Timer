@@ -1,6 +1,10 @@
 package pl.brokenpipe.timeboxing.screens.timer
 
 import android.animation.ValueAnimator
+import android.app.Activity
+import android.app.Notification
+import android.app.NotificationManager
+import android.content.Context
 import android.graphics.Typeface
 import android.media.AudioManager
 import android.media.SoundPool
@@ -23,12 +27,15 @@ import pl.brokenpipe.boundcontroller.Layout
 import pl.brokenpipe.timeboxing.R.layout
 import pl.brokenpipe.timeboxing.R.raw
 import pl.brokenpipe.timeboxing.databinding.TimerViewBinding
+import pl.brokenpipe.timeboxing.notification.TimerNotification
 import rx.Observable
+import rx.Subscription
 import timber.log.Timber
 
 @Layout(layout.timer_view)
 class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
 
+    lateinit private var notification: TimerNotification
     private val SOUND_FADE_OUT_DURATION = 200L
     private var timeFlowAnimation = AnimationSet(true)
 
@@ -37,7 +44,8 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
     val soundPool: SoundPool = if (VERSION.SDK_INT >= 21) Builder().build()
     else SoundPool(2, AudioManager.STREAM_MUSIC, 0)
 
-    var soundId: Int = 0
+    private var soundId: Int = 0
+    private var subscription: Subscription? = null
 
     init {
         with(timeFlowAnimation) {
@@ -59,6 +67,29 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
         }
     }
 
+    override fun onActivityStarted(activity: Activity?) {
+        super.onActivityStarted(activity)
+        notification = TimerNotification(
+            applicationContext.getSystemService(
+                Context.NOTIFICATION_SERVICE) as NotificationManager)
+    }
+
+    override fun onActivityResumed(activity: Activity) {
+        super.onActivityResumed(activity)
+        notification.dismiss()
+        subscription?.unsubscribe()
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+        super.onActivityPaused(activity)
+        subscription = getTimerSecondsObservable().subscribe(
+            {
+                if(viewModel != null) {
+                    notification.show(viewModel!!.time, activity)
+                }
+            })
+    }
+
     override fun startTimer() {
         activity.clockFace.start()
     }
@@ -73,14 +104,14 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun onViewBound(binding: TimerViewBinding) {
-        if(viewModel == null) {
+        if (viewModel == null) {
             viewModel = TimerViewModel(this)
         }
         binding.viewModel = viewModel
         binding.viewModel.subscribeChanges()
         soundId = soundPool.load(activity, raw.alarm3, 1)
         binding.viewModel.subscribeClockState(activity.clockFace.getStateObservable())
-        if(!binding.viewModel.time.isZero()){
+        if (!binding.viewModel.time.isZero()) {
             activity.clockFace.setTime(binding.viewModel.time.getTotalSeconds())
             startTimer()
         }

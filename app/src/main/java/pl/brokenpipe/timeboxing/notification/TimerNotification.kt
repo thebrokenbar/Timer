@@ -25,9 +25,9 @@ class TimerNotification(val notificationManager: NotificationManager) {
             .setContentTitle(context.getString(R.string.app_name))
             .setOngoing(true)
             .setDefaults(0)
-            .setPriority(0)
+            .setPriority(2)
             .setContentIntent(contentIntent)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .build()
     }
 

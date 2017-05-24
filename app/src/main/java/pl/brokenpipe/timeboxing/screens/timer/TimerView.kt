@@ -10,6 +10,7 @@ import android.media.AudioManager
 import android.media.SoundPool
 import android.media.SoundPool.Builder
 import android.os.Build.VERSION
+import android.view.View
 import android.view.WindowManager.LayoutParams
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -72,19 +73,29 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
         notification = TimerNotification(
             applicationContext.getSystemService(
                 Context.NOTIFICATION_SERVICE) as NotificationManager)
+        cancelNotification()
     }
 
-    override fun onActivityResumed(activity: Activity) {
-        super.onActivityResumed(activity)
+
+    override fun onDestroyView(view: View?) {
+        super.onDestroyView(view)
+        cancelNotification()
+    }
+
+    private fun cancelNotification() {
         notification.dismiss()
         subscription?.unsubscribe()
     }
 
-    override fun onActivityPaused(activity: Activity) {
-        super.onActivityPaused(activity)
+    override fun onActivityStopped(activity: Activity) {
+        super.onActivityStopped(activity)
+        showNotification(activity)
+    }
+
+    private fun showNotification(activity: Activity) {
         subscription = getTimerSecondsObservable().subscribe(
             {
-                if(viewModel != null) {
+                if (viewModel != null) {
                     notification.show(viewModel!!.time, activity)
                 }
             })

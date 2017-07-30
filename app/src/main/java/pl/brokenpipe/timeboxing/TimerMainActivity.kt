@@ -12,6 +12,7 @@ import com.bluelinelabs.conductor.RouterTransaction
 import pl.brokenpipe.timeboxing.screens.timer.TimerController
 import pl.brokenpipe.timeboxing.R.id
 import pl.brokenpipe.timeboxing.R.layout
+import pl.brokenpipe.timeboxing.screens.timer.TestTime
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 
@@ -32,7 +33,7 @@ class TimerMainActivity : AppCompatActivity() {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val router = Conductor.attachRouter(this, container, savedInstanceState)
         if (!router.hasRootController()) {
-            router.setRoot(RouterTransaction.with(TimerController()))
+            router.setRoot(RouterTransaction.with(TestTime()))
         }
     }
 

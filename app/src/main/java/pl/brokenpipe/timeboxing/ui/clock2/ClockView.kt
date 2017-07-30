@@ -36,6 +36,7 @@ import pl.brokenpipe.timeboxing.ui.clock.AngleHelper
 import pl.brokenpipe.timeboxing.ui.clock.Side
 import pl.brokenpipe.timeboxing.ui.clock.Side.LEFT
 import pl.brokenpipe.timeboxing.ui.clock.Side.RIGHT
+import timber.log.Timber
 
 /**
  * Created by wierzchanowskig on 04.07.2017.
@@ -43,6 +44,7 @@ import pl.brokenpipe.timeboxing.ui.clock.Side.RIGHT
 class ClockView(context: Context, attributeSet: AttributeSet):
     SurfaceView(context, attributeSet), OnTouchListener {
     private val HANDLE_DRAG_ANGLE = 15
+    private val MAX_FULL_SPINS = Int.MAX_VALUE
 
     var onClockFaceTouchListener: OnClockFaceTouchListener? = null
 
@@ -70,6 +72,7 @@ class ClockView(context: Context, attributeSet: AttributeSet):
         }
     private var fullSpinsCount: Int = 0
     private var angle: Float = 0f
+    private var lastAngle: Float = 0f
 
     ///
 
@@ -131,6 +134,7 @@ class ClockView(context: Context, attributeSet: AttributeSet):
             MotionEvent.ACTION_MOVE -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
                 if(isClockHandDragged) {
+                    updateAngle(Math.abs(angle))
                     onClockFaceTouchListener?.onHandleDragging(Math.abs(angle))
                 }
                 return true
@@ -139,7 +143,13 @@ class ClockView(context: Context, attributeSet: AttributeSet):
         return false
     }
 
-   private fun isHandleDragged(it: Float): Boolean {
+    private fun updateAngle(angle: Float) {
+        this.lastAngle = this.angle
+        this.angle = angle
+        updateSpin(angle)
+    }
+
+    private fun isHandleDragged(it: Float): Boolean {
         val timerAngle = getCurrentTimeAngle()
         return (Math.abs(timerAngle - it) < HANDLE_DRAG_ANGLE)
             || (Math.abs(timerAngle - it) > 360 - HANDLE_DRAG_ANGLE)
@@ -240,5 +250,59 @@ class ClockView(context: Context, attributeSet: AttributeSet):
             (startX + lineLength / 2 * Math.sin(Math.toRadians(angle.toDouble()))).toFloat(),
             (startY + lineLength / 2 * Math.cos(Math.toRadians(angle.toDouble()))).toFloat()
         )
+    }
+
+    private fun updateSpin(angle: Float): Float {
+        Timber.d("angle: %.2f lastAngle: %.2f", angle, lastAngle)
+
+        if (angle > 90 && angle < 270) {
+            if (isFullSpinLeft(angle)) {
+                if (currentSpinSide == LEFT) {
+                    fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
+                } else if (currentSpinSide == RIGHT) {
+                    fullSpinsCount--
+                    if (fullSpinsCount < 0) {
+                        currentSpinSide = LEFT
+                        fullSpinsCount = 0
+                    }
+                } else {
+                    currentSpinSide = LEFT
+                }
+            } else if (isFullSpinRight(angle)) {
+                if (currentSpinSide == RIGHT) {
+                    fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
+                } else if (currentSpinSide == LEFT) {
+                    fullSpinsCount--
+                    if (fullSpinsCount < 0) {
+                        currentSpinSide = RIGHT
+                        fullSpinsCount = 0
+                    }
+                } else {
+                    currentSpinSide = RIGHT
+                }
+            }
+        }
+
+        lastAngle = angle
+        Timber.d("full spins: %d, side: %s", fullSpinsCount, currentSpinSide.name)
+
+        if (fullSpinsCount < 0) {
+            fullSpinsCount = -1
+            lastAngle = 180f
+            return lastAngle
+        }
+        return angle
+    }
+
+    private fun isFullSpinRight(angle: Float): Boolean {
+        val last = angleHelper.rotateAngle(lastAngle, -180f)
+        val current = angleHelper.rotateAngle(angle, -180f)
+        return last < 90 && current > 270
+    }
+
+    private fun isFullSpinLeft(angle: Float): Boolean {
+        val last = angleHelper.rotateAngle(lastAngle, -180f)
+        val current = angleHelper.rotateAngle(angle, -180f)
+        return last > 270 && current < 90
     }
 }

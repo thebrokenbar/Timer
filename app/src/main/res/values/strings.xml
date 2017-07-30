@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Timeboxing</string>
+    <string name="button_ok">Ok</string>
+    <string name="label_main_onboarding">Przeciągnij wskazówkę w lewo lub prawo aby ustawić timebox</string>
 </resources>

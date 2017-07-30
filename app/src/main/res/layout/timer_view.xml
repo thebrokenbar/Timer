@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
         <pl.brokenpipe.timeboxing.ui.clock.ClockFace
             tools:visibility="gone"
             android:id="@+id/clockFace"
@@ -116,5 +117,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             tools:text="1.0.1" />
+
+        <include layout="@layout/main_onboarding"
+            android:visibility="@{viewModel.showOnboarding}"/>
     </android.support.constraint.ConstraintLayout>
 </layout>

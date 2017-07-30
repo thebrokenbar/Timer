@@ -8,5 +8,34 @@
         <attr format="reference" name="metaButtonBarStyle" />
         <attr format="reference" name="metaButtonBarButtonStyle" />
     </declare-styleable>
+    
+    <declare-styleable name="ClockView">
+        <!-- Clock backgroundColor-->
+        <attr name="backgroundColor" format="color"/>
+        <!-- Show or hide clock face-->
+        <attr name="faceVisibility" format="boolean"/>
+        <!-- Color of the clock's face-->
+        <attr name="primaryFaceColor" format="color"/>
+        <!-- Color of the clock's face with stacked faces-->
+        <attr name="secondaryFaceColor" format="color"/>
+        <!-- Show or hide clock hand-->
+        <attr name="handVisibility" format="boolean"/>
+        <!-- Color of the clock's hand-->
+        <attr name="handColor" format="color"/>
+        <!-- Spin behaviour: hand is going left, right or both sides?-->
+        <attr name="spinSide" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+            <enum name="leftRight" value="2"/>
+        </attr>
+        <!-- Maximum spins count for clock face-->
+        <attr name="maxSpins" format="integer"/>
+        <!-- Percentage value of clock, 100% = one spin -->
+        <attr name="value" format="float"/>
+        <!-- Show or hide time dividers?-->
+        <attr name="dividersVisibility" format="boolean"/>
+        <!-- Time dividers color-->
+        <attr name="dividersColor" format="color"/>
+    </declare-styleable>
 
 </resources>

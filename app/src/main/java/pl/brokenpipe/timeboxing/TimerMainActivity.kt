@@ -9,13 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.RouterTransaction
-import pl.brokenpipe.timeboxing.screens.timer.TimerView
+import pl.brokenpipe.timeboxing.screens.timer.TimerController
 import pl.brokenpipe.timeboxing.R.id
 import pl.brokenpipe.timeboxing.R.layout
-import pl.brokenpipe.timeboxing.notification.TimerNotification
 import timber.log.Timber
 import timber.log.Timber.DebugTree
-import timber.log.Timber.Tree
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -34,7 +32,7 @@ class TimerMainActivity : AppCompatActivity() {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val router = Conductor.attachRouter(this, container, savedInstanceState)
         if (!router.hasRootController()) {
-            router.setRoot(RouterTransaction.with(TimerView()))
+            router.setRoot(RouterTransaction.with(TimerController()))
         }
     }
 

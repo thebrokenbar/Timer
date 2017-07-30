@@ -9,4 +9,8 @@
     <color name="clock_background">#393e41</color>
     <color name="text_color_secondary_dark">#808381</color>
     <color name="text_color_primary_dark">#ffffff</color>
+
+    <color name="main_red">#d94e4a</color>
+    <color name="secondary_red">#ffff6f59</color>
+    <color name="onboarding_background">#e1393e41</color>
 </resources>

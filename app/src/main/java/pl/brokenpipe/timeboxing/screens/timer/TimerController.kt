@@ -2,9 +2,10 @@ package pl.brokenpipe.timeboxing.screens.timer
 
 import android.animation.ValueAnimator
 import android.app.Activity
-import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.graphics.Typeface
 import android.media.AudioManager
 import android.media.SoundPool
@@ -29,12 +30,14 @@ import pl.brokenpipe.timeboxing.R.layout
 import pl.brokenpipe.timeboxing.R.raw
 import pl.brokenpipe.timeboxing.databinding.TimerViewBinding
 import pl.brokenpipe.timeboxing.notification.TimerNotification
+import pl.brokenpipe.timeboxing.persistance.SharedPreferencesDataManager
+import pl.brokenpipe.timeboxing.persistance.SimpleDataManager
 import rx.Observable
 import rx.Subscription
 import timber.log.Timber
 
 @Layout(layout.timer_view)
-class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
+class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
 
     lateinit private var notification: TimerNotification
     private val SOUND_FADE_OUT_DURATION = 200L
@@ -47,6 +50,7 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
 
     private var soundId: Int = 0
     private var subscription: Subscription? = null
+    private lateinit var simpleDataManager: SimpleDataManager
 
     init {
         with(timeFlowAnimation) {
@@ -118,6 +122,7 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
         if (viewModel == null) {
             viewModel = TimerViewModel(this)
         }
+
         binding.viewModel = viewModel
         binding.viewModel.subscribeChanges()
         soundId = soundPool.load(activity, raw.alarm3, 1)
@@ -128,6 +133,10 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
         }
         setupFonts()
         activity.clockFace.setSide(binding.viewModel.clockSpinSide)
+
+        simpleDataManager = SharedPreferencesDataManager(activity.getSharedPreferences("sharedPref", MODE_PRIVATE))
+        binding.viewModel.showOnboarding = isOnboardingVisible()
+
     }
 
     override fun onViewUnbound(binding: TimerViewBinding) {
@@ -172,4 +181,10 @@ class TimerView : BoundController<TimerViewBinding>(), TimerViewActions {
     override fun letScreenOff() {
         activity.window.clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
+
+    fun isOnboardingVisible(): Boolean {
+        return simpleDataManager.getValue("isOnboardingVisible", true, Boolean::class.java)
+    }
+
+    
 }

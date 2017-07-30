@@ -82,6 +82,13 @@ class TimerViewModel(val timerViewActions: TimerViewActions) : BaseObservable() 
         }
 
     @get:Bindable
+    var showOnboarding: Boolean = false
+    set(value) {
+        field = value
+        notifyPropertyChanged(BR.showOnboarding)
+    }
+
+    @get:Bindable
     var timerLeftValueVisibility: Boolean = false
     set(value) {
         field = value

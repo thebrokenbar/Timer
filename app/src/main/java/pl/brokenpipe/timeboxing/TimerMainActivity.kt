@@ -9,10 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.RouterTransaction
-import pl.brokenpipe.timeboxing.screens.timer.TimerController
 import pl.brokenpipe.timeboxing.R.id
 import pl.brokenpipe.timeboxing.R.layout
-import pl.brokenpipe.timeboxing.screens.timer.TestTime
+import pl.brokenpipe.timeboxing.screens.timer.newtimer.TimerController
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 
@@ -28,12 +27,12 @@ class TimerMainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Timber.plant(DebugTree())
         setContentView(layout.activity_timer_main)
-        container = findViewById(id.conductorContainer) as ViewGroup
+        container = findViewById(id.conductorContainer)
 
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val router = Conductor.attachRouter(this, container, savedInstanceState)
         if (!router.hasRootController()) {
-            router.setRoot(RouterTransaction.with(TestTime()))
+            router.setRoot(RouterTransaction.with(TimerController()))
         }
     }
 

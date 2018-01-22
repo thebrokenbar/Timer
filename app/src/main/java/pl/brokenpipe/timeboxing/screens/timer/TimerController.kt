@@ -45,7 +45,8 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
 
     var viewModel: TimerViewModel? = null
     @Suppress("DEPRECATION")
-    val soundPool: SoundPool = if (VERSION.SDK_INT >= 21) Builder().build()
+    private val soundPool: SoundPool = if (VERSION.SDK_INT >= 21)
+        Builder().build()
     else SoundPool(2, AudioManager.STREAM_MUSIC, 0)
 
     private var soundId: Int = 0
@@ -57,8 +58,8 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
             val animationDuration = 800L
             interpolator = DecelerateInterpolator()
             val scale = ScaleAnimation(
-                1f, 1.2f, 1f, 1.2f, Animation.RELATIVE_TO_SELF, 0.5f,
-                Animation.RELATIVE_TO_SELF, 0.5f)
+                    1f, 1.2f, 1f, 1.2f, Animation.RELATIVE_TO_SELF, 0.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f)
             scale.duration = animationDuration
 
             val fade = AlphaAnimation(1f, 0f)
@@ -75,8 +76,8 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
     override fun onActivityStarted(activity: Activity?) {
         super.onActivityStarted(activity)
         notification = TimerNotification(
-            applicationContext.getSystemService(
-                Context.NOTIFICATION_SERVICE) as NotificationManager)
+                applicationContext.getSystemService(
+                        Context.NOTIFICATION_SERVICE) as NotificationManager)
         cancelNotification()
     }
 
@@ -98,11 +99,11 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
 
     private fun showNotification(activity: Activity) {
         subscription = getTimerSecondsObservable().subscribe(
-            {
-                if (viewModel != null) {
-                    notification.show(viewModel!!.time, activity)
-                }
-            })
+                {
+                    if (viewModel != null) {
+                        notification.show(viewModel!!.time, activity)
+                    }
+                })
     }
 
     override fun startTimer() {
@@ -186,5 +187,5 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
         return simpleDataManager.getValue("isOnboardingVisible", true, Boolean::class.java)
     }
 
-    
+
 }

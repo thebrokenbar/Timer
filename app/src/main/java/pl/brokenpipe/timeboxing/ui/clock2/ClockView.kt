@@ -41,8 +41,8 @@ import timber.log.Timber
 /**
  * Created by wierzchanowskig on 04.07.2017.
  */
-class ClockView(context: Context, attributeSet: AttributeSet):
-    SurfaceView(context, attributeSet), OnTouchListener {
+class ClockView(context: Context, attributeSet: AttributeSet) :
+        SurfaceView(context, attributeSet), OnTouchListener {
     private val HANDLE_DRAG_ANGLE = 15
     private val MAX_FULL_SPINS = Int.MAX_VALUE
 
@@ -84,21 +84,23 @@ class ClockView(context: Context, attributeSet: AttributeSet):
         } finally {
             clockTypedArray.recycle()
         }
+        setWillNotDraw(false)
+        setOnTouchListener(this)
     }
 
     private fun parseAttributes(typedArray: TypedArray): ClockViewAttributes {
         return ClockViewAttributes(
-            handColor = typedArray.getColor(R.attr.handColor, 0xFFFFFF),
-            backgroundColor = typedArray.getColor(R.attr.backgroundColor, 0x000000),
-            primaryFaceColor = typedArray.getColor(R.attr.primaryFaceColor, 0xdb504a),
-            secondaryFaceColor = typedArray.getColor(R.attr.secondaryFaceColor, 0xff6f59),
-            dividersColor = typedArray.getColor(R.attr.dividersColor, 0xFFFFFF),
-            dividersVisibility = typedArray.getBoolean(R.attr.dividersVisibility, true),
-            faceVisibility = typedArray.getBoolean(R.attr.faceVisibility, true),
-            handVisibility = typedArray.getBoolean(R.attr.faceVisibility, true),
-            maxSpins = typedArray.getInt(R.attr.maxSpins, Int.MAX_VALUE),
-            spinSide = ClockSpinSide.values()[(typedArray.getInt(R.attr.spinSide, ClockSpinSide.LEFT_RIGHT.value))],
-            value = 0.0f
+                handColor = typedArray.getColor(R.styleable.ClockView_handColor, 0xFFFFFFFF.toInt()),
+                backgroundColor = typedArray.getColor(R.styleable.ClockView_backgroundColor, 0xFFFFFFFF.toInt()),
+                primaryFaceColor = typedArray.getColor(R.styleable.ClockView_primaryFaceColor, 0xFFdb504a.toInt()),
+                secondaryFaceColor = typedArray.getColor(R.styleable.ClockView_secondaryFaceColor, 0xffff6f59.toInt()),
+                dividersColor = typedArray.getColor(R.styleable.ClockView_dividersColor, 0xFFFFFFFF.toInt()),
+                dividersVisibility = typedArray.getBoolean(R.styleable.ClockView_dividersVisibility, true),
+                faceVisibility = typedArray.getBoolean(R.styleable.ClockView_faceVisibility, true),
+                handVisibility = typedArray.getBoolean(R.styleable.ClockView_faceVisibility, true),
+                maxSpins = typedArray.getInt(R.styleable.ClockView_maxSpins, Int.MAX_VALUE),
+                spinSide = ClockSpinSide.values()[(typedArray.getInt(R.styleable.ClockView_spinSide, ClockSpinSide.LEFT_RIGHT.value))],
+                value = 0.0f
         )
     }
 
@@ -107,10 +109,10 @@ class ClockView(context: Context, attributeSet: AttributeSet):
 
         canvas.drawRect(clockRect, clockPalette.faceBackgroundPaint)
         canvas.drawPath(faceShape, clockPalette.facePaint)
-        canvas.drawBitmap(faceDividersBitmap, 0f,0f, clockPalette.bitmapPaint)
-        if(clockHand.isEmpty) {
+        canvas.drawBitmap(faceDividersBitmap, 0f, 0f, clockPalette.bitmapPaint)
+        if (clockHand.isEmpty) {
             canvas.drawLine(clockRect.right / 2, clockRect.bottom / 2,
-                            clockRect.right / 2, clockRect.top, clockPalette.handPaint)
+                    clockRect.right / 2, clockRect.top, clockPalette.handPaint)
         } else {
             canvas.drawPath(clockHand, clockPalette.handPaint)
         }
@@ -126,17 +128,18 @@ class ClockView(context: Context, attributeSet: AttributeSet):
             MotionEvent.ACTION_DOWN -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
                 isClockHandDragged = isHandleDragged(Math.abs(angle))
-                if(isClockHandDragged) {
+                if (isClockHandDragged) {
                     onClockFaceTouchListener?.onHandleDragStart()
                 }
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                if(isClockHandDragged) {
+                if (isClockHandDragged) {
                     updateAngle(Math.abs(angle))
                     onClockFaceTouchListener?.onHandleDragging(Math.abs(angle))
                 }
+                update()
                 return true
             }
         }
@@ -152,7 +155,7 @@ class ClockView(context: Context, attributeSet: AttributeSet):
     private fun isHandleDragged(it: Float): Boolean {
         val timerAngle = getCurrentTimeAngle()
         return (Math.abs(timerAngle - it) < HANDLE_DRAG_ANGLE)
-            || (Math.abs(timerAngle - it) > 360 - HANDLE_DRAG_ANGLE)
+                || (Math.abs(timerAngle - it) > 360 - HANDLE_DRAG_ANGLE)
     }
 
     private fun getCurrentTimeAngle(): Float {
@@ -167,37 +170,37 @@ class ClockView(context: Context, attributeSet: AttributeSet):
         val fourthCornerPoint = PointF(rect.right, rect.top)
 
         cornerPoints = arrayOf(firstCornerPoint, secondCornerPoint, thirdCornerPoint,
-                               fourthCornerPoint)
+                fourthCornerPoint)
 
 //        if (isClockRightSided()) {
 //            cornerPoints.reverse()
 //        }
 
         val firstCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, firstCornerPoint), -180f)
+                angleHelper.getAngle(rectCenter, firstCornerPoint), -180f)
         val secondCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, secondCornerPoint), -180f)
+                angleHelper.getAngle(rectCenter, secondCornerPoint), -180f)
         val thirdCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, thirdCornerPoint), -180f)
+                angleHelper.getAngle(rectCenter, thirdCornerPoint), -180f)
         val fourthCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, fourthCornerPoint), -180f)
+                angleHelper.getAngle(rectCenter, fourthCornerPoint), -180f)
 
         cornerAngles = arrayOf(firstCornerAngle, secondCornerAngle, thirdCornerAngle,
-                               fourthCornerAngle)
+                fourthCornerAngle)
     }
 
     private fun getIncludedCornersPoints(clockHandAngle: Float): Array<PointF> {
         var result: Array<PointF> = emptyArray()
         for (i in cornerAngles.size - 1 downTo 0) {
-            if (angleHelper.rotateAngle(clockHandAngle, -180f) > cornerAngles[i] ) {
-                val rangeStart = if(isClockRightSided()) i else 0
-                val rangeEnd = if(isClockRightSided()) cornerAngles.size else i + 1
+            if (angleHelper.rotateAngle(clockHandAngle, -180f) > cornerAngles[i]) {
+                val rangeStart = if (isClockRightSided()) i else 0
+                val rangeEnd = if (isClockRightSided()) cornerAngles.size else i + 1
                 result = cornerPoints.copyOfRange(rangeStart, rangeEnd)
-                if(isClockRightSided()) result.reverse()
+                if (isClockRightSided()) result.reverse()
                 break
             }
         }
-        if(isClockRightSided() && result.isEmpty())
+        if (isClockRightSided() && result.isEmpty())
             result = cornerPoints.reversedArray()
         return result
     }
@@ -221,8 +224,8 @@ class ClockView(context: Context, attributeSet: AttributeSet):
 
     private fun setClockFaceShape(angle: Float) {
         val rectDiagonalLength = Math.sqrt(
-            Math.pow(clockRect.right.toDouble(), 2.0) + Math.pow(
-                clockRect.bottom.toDouble(), 2.0)).toFloat()
+                Math.pow(clockRect.right.toDouble(), 2.0) + Math.pow(
+                        clockRect.bottom.toDouble(), 2.0)).toFloat()
 
         faceShape.reset()
 
@@ -234,8 +237,8 @@ class ClockView(context: Context, attributeSet: AttributeSet):
         }
 
         val lineEnd = getLineEnd(faceCenter.x, faceCenter.y,
-                                 angle ,
-                                 rectDiagonalLength)
+                angle,
+                rectDiagonalLength)
         faceShape.lineTo(lineEnd.x, lineEnd.y)
 
         faceShape.lineTo(faceCenter.x, faceCenter.y)
@@ -247,8 +250,8 @@ class ClockView(context: Context, attributeSet: AttributeSet):
 
     private fun getLineEnd(startX: Float, startY: Float, angle: Float, lineLength: Float): PointF {
         return PointF(
-            (startX + lineLength / 2 * Math.sin(Math.toRadians(angle.toDouble()))).toFloat(),
-            (startY + lineLength / 2 * Math.cos(Math.toRadians(angle.toDouble()))).toFloat()
+                (startX + lineLength / 2 * Math.sin(Math.toRadians(angle.toDouble()))).toFloat(),
+                (startY + lineLength / 2 * Math.cos(Math.toRadians(angle.toDouble()))).toFloat()
         )
     }
 

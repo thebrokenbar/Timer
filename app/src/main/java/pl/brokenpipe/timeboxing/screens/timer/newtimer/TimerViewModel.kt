@@ -1,6 +1,7 @@
 package pl.brokenpipe.timeboxing.screens.timer.newtimer
 
 import io.reactivex.disposables.Disposable
+import io.reactivex.rxkotlin.subscribeBy
 import pl.brokenpipe.timeboxing.BuildConfig
 import pl.brokenpipe.timeboxing.arch.ViewModel
 
@@ -10,32 +11,38 @@ import pl.brokenpipe.timeboxing.arch.ViewModel
 class TimerViewModel(
         timerController: TimerView,
         timerViewState: TimerViewState,
-        private val timeFlow: TimeFlow
+        private val countdown: Countdown
 ) : ViewModel<TimerView, TimerViewState>(timerController, timerViewState) {
 
     private val timerFlowSpeed: Long =
             if (BuildConfig.DEBUG)
-                timeFlow.secondInMillis / 10
+                Countdown.SECOND_TO_MILLIS / 10
             else
-                timeFlow.secondInMillis
+                Countdown.SECOND_TO_MILLIS
 
     private var running: Boolean = false
     private var timerSubscriptionDisposable: Disposable? = null
 
     fun startTimer() {
         running = true
-        timerSubscriptionDisposable = timeFlow.run(timerFlowSpeed)
-                .subscribe({
-                    viewState.timeInMillis += it
-                }, {
-                    view.showTimerFatalError()
-                })
+        timerSubscriptionDisposable = countdown.start(viewState.timeInMillis, timerFlowSpeed)
+                .subscribeBy (
+                        onNext = {
+                            viewState.timeInMillis = it
+                        },
+                        onError = {
+                            view.showTimerFatalError()
+                        },
+                        onComplete = {
+                            view.showTimerEnd()
+                        }
+                )
     }
 
-    fun stopTimer() {
+    fun pauseTimer() {
         running = false
         timerSubscriptionDisposable?.dispose()
-        timeFlow.stop()
+        countdown.pause()
     }
 
 

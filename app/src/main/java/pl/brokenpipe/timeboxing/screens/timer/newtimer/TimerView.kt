@@ -7,4 +7,5 @@ import pl.brokenpipe.timeboxing.arch.View
  */
 interface TimerView: View {
     fun showTimerFatalError()
+    fun showTimerEnd()
 }

@@ -29,6 +29,10 @@ import pl.brokenpipe.timeboxing.databinding.TestclockBinding
  */
 @Layout(R.layout.testclock)
 class TimerController : BoundController<TestclockBinding>(), TimerView {
+    override fun showTimerEnd() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun showTimerFatalError() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

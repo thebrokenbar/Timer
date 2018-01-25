@@ -49,13 +49,26 @@ class CountdownTest {
     }
 
     @Test
-    fun isEmitting3TimesOn3SecondsWithManySubscribers() {
+    fun isEmitting3SameItemsIn3SecondsWithManySubscribers() {
         val test1 = countdown.start(3000, 1000).test()
-        val test2 = countdown.observe().test()
-        val test3 = countdown.observe().test()
+        val test2 = countdown.resume().test()
+        val test3 = countdown.resume().test()
         intervalScheduler.advanceTimeBy(3000, TimeUnit.MILLISECONDS)
-        test1.assertValueCount(3)
-        test2.assertValueCount(3)
-        test3.assertValueCount(3)
+
+        test1.assertValues(2000, 1000, 0)
+        test2.assertValues(2000, 1000, 0)
+        test3.assertValues(2000, 1000, 0)
+    }
+
+    @Test
+    fun isCompletingOldTimerWhenNewIsMade() {
+        val test1 = countdown.start(3000, 1000).test()
+        intervalScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS)
+        val test2 = countdown.start(3000, 1000).test()
+        intervalScheduler.advanceTimeBy(3000, TimeUnit.MILLISECONDS)
+
+        test1.assertValues(2000)
+        test2.assertValues(2000,1000,0)
+
     }
 }

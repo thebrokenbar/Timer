@@ -21,7 +21,7 @@ package pl.brokenpipe.timeboxing.persistance
 import android.content.SharedPreferences
 
 @Suppress("UNCHECKED_CAST")
-class SharedPreferencesDataManager(val sharedPreferences: SharedPreferences): SimpleDataManager {
+class SharedPreferencesDataManager(private val sharedPreferences: SharedPreferences): SimpleDataManager {
 
     override fun <T> setValue(key: String, value: T, clazz: Class<T>) {
         when(clazz) {

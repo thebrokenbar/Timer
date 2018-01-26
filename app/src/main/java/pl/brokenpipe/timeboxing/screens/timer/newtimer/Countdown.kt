@@ -2,6 +2,8 @@ package pl.brokenpipe.timeboxing.screens.timer.newtimer
 
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
+import pl.brokenpipe.timeboxing.screens.timer.newtimer.exceptions.TimerDisposedException
+import pl.brokenpipe.timeboxing.screens.timer.newtimer.exceptions.TimerNotStartedException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -30,7 +32,6 @@ class Countdown {
     fun start(startTimeInMillis: Long, timerIntervalMillis: Long): Flowable<Long> {
         stop()
         this.running = true
-
         return intervalFlowable?.share() ?: make(startTimeInMillis, timerIntervalMillis)
                 .also { intervalFlowable = it }.share()
     }
@@ -38,23 +39,26 @@ class Countdown {
     private fun interval(timerIntervalMillis: Long): Flowable<Long> {
         val currentTimerId = timerId
         return Flowable.interval(timerIntervalMillis, TimeUnit.MILLISECONDS, timerThread)
-                .timeInterval()
                 .doOnComplete { running = false }
-                .takeUntil { !shouldEmit(currentTimerId) }
-                .takeWhile { shouldEmit(currentTimerId) }
+                .doOnNext {
+                    if (currentTimerId != timerId) {
+                        throw TimerDisposedException("This timer was stopped and replaced with new one")
+                    }
+                }
+                .filter { running }
+                .takeUntil { timeInMillis <= 0 }
+                .takeWhile { timeInMillis > 0 }
                 .map {
                     timeInMillis -= SECOND_TO_MILLIS
                     return@map timeInMillis
                 }
-
-
     }
 
-    private fun shouldEmit(currentTimerId: Int) =
-            timeInMillis > 0 && running && currentTimerId == timerId
-
-    fun resume() = intervalFlowable
-            ?: throw TimerNotStarted("You cannot resume countdown, timer was not started yet")
+    fun resume(): Flowable<Long> {
+        running = true
+        return intervalFlowable
+                ?: throw TimerNotStartedException("You cannot resume countdown, timer was not started yet")
+    }
 
     fun pause() {
         running = false
@@ -64,7 +68,7 @@ class Countdown {
         pause()
         timeInMillis = 0
         intervalFlowable = null
+        timerId++
     }
 
-    class TimerNotStarted(s: String) : RuntimeException(s)
 }

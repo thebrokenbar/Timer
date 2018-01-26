@@ -1,4 +1,4 @@
-package pl.brokenpipe.timeboxing.screens.timer.newtimer
+package pl.brokenpipe.timeboxing.screens.timer.newtimer.interfaces
 
 import pl.brokenpipe.timeboxing.arch.View
 

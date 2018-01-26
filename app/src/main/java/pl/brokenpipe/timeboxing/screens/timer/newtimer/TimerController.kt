@@ -21,8 +21,8 @@ package pl.brokenpipe.timeboxing.screens.timer.newtimer
 import pl.brokenpipe.boundcontroller.BoundController
 import pl.brokenpipe.boundcontroller.Layout
 import pl.brokenpipe.timeboxing.R
-import pl.brokenpipe.timeboxing.arch.View
 import pl.brokenpipe.timeboxing.databinding.TestclockBinding
+import pl.brokenpipe.timeboxing.screens.timer.newtimer.interfaces.TimerView
 
 /**
  * Created by wierzchanowskig on 30.07.2017.

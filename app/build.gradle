@@ -50,6 +50,7 @@ android {
 dependencies {
   compile fileTree(include: ['*.jar'], dir: 'libs')
   testCompile 'junit:junit:4.12'
+  testCompile 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-alpha02'
   compile 'pl.brokenpipe:boundcontroller:0.1'
   compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   compile "io.reactivex:rxjava:$rxjava_version"

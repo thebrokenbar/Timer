@@ -20,6 +20,8 @@ package pl.brokenpipe.timeboxing.ui.clock2
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.databinding.BindingMethod
+import android.databinding.BindingMethods
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config.ARGB_8888
 import android.graphics.Canvas
@@ -41,12 +43,19 @@ import timber.log.Timber
 /**
  * Created by wierzchanowskig on 04.07.2017.
  */
+@BindingMethods(
+        BindingMethod(type = ClockView::class, attribute = "onDragStartListener", method = "setOnDragStartListener"),
+        BindingMethod(type = ClockView::class, attribute = "onDragStopListener", method = "setOnDragStopListener"),
+        BindingMethod(type = ClockView::class, attribute = "onDraggingListener", method = "setOnDraggingListener")
+)
 class ClockView(context: Context, attributeSet: AttributeSet) :
         SurfaceView(context, attributeSet), OnTouchListener {
     private val HANDLE_DRAG_ANGLE = 15
     private val MAX_FULL_SPINS = Int.MAX_VALUE
 
-    var onClockFaceTouchListener: OnClockFaceTouchListener? = null
+    var onDragStartListener: OnClockFaceTouchListener.HandleDragStart? = null
+    var onDragStopListener: OnClockFaceTouchListener.HandleDragStop? = null
+    var onDraggingListener: OnClockFaceTouchListener.HandleDragging? = null
 
     private val attributes: ClockViewAttributes
     private val clockPalette: ClockPalette
@@ -122,14 +131,14 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         when (event.action) {
             MotionEvent.ACTION_UP -> {
                 isClockHandDragged = false
-                onClockFaceTouchListener?.onHandleDragStop()
+                onDragStopListener?.onHandleDragStop()
                 return true
             }
             MotionEvent.ACTION_DOWN -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
                 isClockHandDragged = isHandleDragged(Math.abs(angle))
                 if (isClockHandDragged) {
-                    onClockFaceTouchListener?.onHandleDragStart()
+                    onDragStartListener?.onHandleDragStart()
                 }
                 return true
             }
@@ -137,7 +146,7 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
                 if (isClockHandDragged) {
                     updateAngle(Math.abs(angle))
-                    onClockFaceTouchListener?.onHandleDragging(Math.abs(angle))
+                    onDraggingListener?.onHandleDragging(Math.abs(angle))
                 }
                 update()
                 return true

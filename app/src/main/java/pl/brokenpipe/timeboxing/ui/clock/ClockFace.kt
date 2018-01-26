@@ -45,7 +45,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
     private var faceCenter: PointF = PointF(0f, 0f)
     private val faceShape: Path = Path()
     private val clockHand: Path = Path()
-    private var cornerAngles: Array<Float> = emptyArray()
+    private var cornerAngles: Array<Double> = emptyArray()
     private var cornerPoints: Array<PointF> = emptyArray()
     private var faceDividersBitmap = Bitmap.createBitmap(1, 1, ARGB_8888)
 
@@ -95,10 +95,10 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         invalidate()
     }
 
-    private fun getLineEnd(startX: Float, startY: Float, angle: Float, lineLength: Float): PointF {
+    private fun getLineEnd(startX: Float, startY: Float, angle: Double, lineLength: Float): PointF {
         return PointF(
-            (startX + lineLength / 2 * Math.sin(Math.toRadians(angle.toDouble()))).toFloat(),
-            (startY + lineLength / 2 * Math.cos(Math.toRadians(angle.toDouble()))).toFloat()
+            (startX + lineLength / 2 * Math.sin(Math.toRadians(angle))).toFloat(),
+            (startY + lineLength / 2 * Math.cos(Math.toRadians(angle))).toFloat()
         )
     }
 
@@ -137,22 +137,22 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
 //        }
 
         val firstCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, firstCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, firstCornerPoint), -180.0)
         val secondCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, secondCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, secondCornerPoint), -180.0)
         val thirdCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, thirdCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, thirdCornerPoint), -180.0)
         val fourthCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, fourthCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, fourthCornerPoint), -180.0)
 
         cornerAngles = arrayOf(firstCornerAngle, secondCornerAngle, thirdCornerAngle,
                                fourthCornerAngle)
     }
 
-    private fun getIncludedCornersPoints(clockHandAngle: Float): Array<PointF> {
+    private fun getIncludedCornersPoints(clockHandAngle: Double): Array<PointF> {
         var result: Array<PointF> = emptyArray()
         for (i in cornerAngles.size - 1 downTo 0) {
-            if (angleHelper.rotateAngle(clockHandAngle, -180f) > cornerAngles[i] ) {
+            if (angleHelper.rotateAngle(clockHandAngle, -180.0) > cornerAngles[i] ) {
                 val rangeStart = if(isClockRightSided()) i else 0
                 val rangeEnd = if(isClockRightSided()) cornerAngles.size else i + 1
                 result = cornerPoints.copyOfRange(rangeStart, rangeEnd)
@@ -195,7 +195,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
             floatArrayOf(0f, 0.3f, 1f), CLAMP)
 
         (0..11)
-            .map { getLineEnd(rectCenter.x, rectCenter.y, it * 30f, rectDiagonalLength) }
+            .map { getLineEnd(rectCenter.x, rectCenter.y, it * 30.0, rectDiagonalLength) }
             .forEach { canvas.drawLine(rectCenter.x, rectCenter.y, it.x, it.y, faceDividersPaint) }
 
         canvas.drawRect(clockRect, faceDividersMaskPaint)
@@ -215,7 +215,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         }
     }
 
-    override fun setClockFaceShape(angle: Float) {
+    override fun setClockFaceShape(angle: Double) {
         val rectDiagonalLength = Math.sqrt(
             Math.pow(clockRect.right.toDouble(), 2.0) + Math.pow(
                 clockRect.bottom.toDouble(), 2.0)).toFloat()

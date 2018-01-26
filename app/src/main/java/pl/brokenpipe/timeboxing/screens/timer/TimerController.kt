@@ -32,6 +32,7 @@ import pl.brokenpipe.timeboxing.databinding.TimerViewBinding
 import pl.brokenpipe.timeboxing.notification.TimerNotification
 import pl.brokenpipe.timeboxing.persistance.SharedPreferencesDataManager
 import pl.brokenpipe.timeboxing.persistance.SimpleDataManager
+import pl.brokenpipe.timeboxing.ui.clock.Side
 import rx.Observable
 import rx.Subscription
 import timber.log.Timber
@@ -72,16 +73,16 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
         }
     }
 
-    override fun onActivityStarted(activity: Activity?) {
+    override fun onActivityStarted(activity: Activity) {
         super.onActivityStarted(activity)
         notification = TimerNotification(
-            applicationContext.getSystemService(
+            activity.getSystemService(
                 Context.NOTIFICATION_SERVICE) as NotificationManager)
         cancelNotification()
     }
 
 
-    override fun onDestroyView(view: View?) {
+    override fun onDestroyView(view: View) {
         super.onDestroyView(view)
         cancelNotification()
     }
@@ -106,16 +107,16 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun startTimer() {
-        activity.clockFace.start()
+        activity?.clockFace?.start()
     }
 
     override fun pauseTimer() {
-        activity.clockFace.pause()
-        activity.rlClockCenter.clearAnimation()
+        activity?.clockFace?.pause()
+        activity?.rlClockCenter?.clearAnimation()
     }
 
     override fun animateTimeFlow() {
-        activity.vClockCenterBackground.startAnimation(timeFlowAnimation)
+        activity?.vClockCenterBackground?.startAnimation(timeFlowAnimation)
     }
 
     override fun onViewBound(binding: TimerViewBinding) {
@@ -126,34 +127,35 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
         binding.viewModel = viewModel
         binding.viewModel.subscribeChanges()
         soundId = soundPool.load(activity, raw.alarm3, 1)
-        binding.viewModel.subscribeClockState(activity.clockFace.getStateObservable())
+        binding.viewModel.subscribeClockState(activity?.clockFace?.getStateObservable() as Observable<Boolean>)
         if (!binding.viewModel.time.isZero()) {
-            activity.clockFace.setTime(binding.viewModel.time.getTotalSeconds())
+            activity?.clockFace?.setTime(binding.viewModel.time.getTotalSeconds())
             startTimer()
         }
         setupFonts()
-        activity.clockFace.setSide(binding.viewModel.clockSpinSide)
+        activity?.clockFace?.setSide(binding.viewModel.clockSpinSide)
 
-        simpleDataManager = SharedPreferencesDataManager(activity.getSharedPreferences("sharedPref", MODE_PRIVATE))
+        simpleDataManager = SharedPreferencesDataManager(
+            activity?.getSharedPreferences("sharedPref", MODE_PRIVATE) as SharedPreferences)
         binding.viewModel.showOnboarding = isOnboardingVisible()
 
     }
 
     override fun onViewUnbound(binding: TimerViewBinding) {
-        activity.clockFace.dispose()
-        binding.viewModel.clockSpinSide = activity.clockFace.getSide()
+        activity?.clockFace?.dispose()
+        binding.viewModel.clockSpinSide = activity?.clockFace?.getSide() as Side
         binding.viewModel.dispose()
     }
 
     private fun setupFonts() {
-        val colonTypeface = Typeface.createFromAsset(activity.assets, "Roboto-Thin.ttf")
-        activity.tvClockTimeMiddle.typeface = colonTypeface
-        activity.tvClockTimeLeft.setTypeface(activity.tvClockTimeRight.typeface, Typeface.BOLD)
-        activity.tvClockTimeRight.setTypeface(activity.tvClockTimeRight.typeface, Typeface.BOLD)
+        val colonTypeface = Typeface.createFromAsset(activity?.assets, "Roboto-Thin.ttf")
+        activity?.tvClockTimeMiddle?.typeface = colonTypeface
+        activity?.tvClockTimeLeft?.setTypeface(activity?.tvClockTimeRight?.typeface, Typeface.BOLD)
+        activity?.tvClockTimeRight?.setTypeface(activity?.tvClockTimeRight?.typeface, Typeface.BOLD)
     }
 
     override fun getTimerSecondsObservable(): Observable<Long> {
-        return activity.clockFace.getTimerObservable()
+        return activity?.clockFace?.getTimerObservable() as Observable<Long>
     }
 
     override fun playEndSound() {
@@ -175,11 +177,11 @@ class TimerController : BoundController<TimerViewBinding>(), TimerViewActions {
     }
 
     override fun keepScreenOn() {
-        activity.window.addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
+        activity?.window?.addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun letScreenOff() {
-        activity.window.clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
+        activity?.window?.clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     fun isOnboardingVisible(): Boolean {

@@ -22,7 +22,7 @@ package pl.brokenpipe.timeboxing.ui.clock2
  * Created by wierzchanowskig on 29.07.2017.
  */
 interface OnClockFaceTouchListener {
-    fun onHandleDragStart()
-    fun onHandleDragStop()
-    fun onHandleDragging(angle: Float)
+    fun onHandleDragStart(angle: Double) {}
+    fun onHandleDragStop(angle: Double) {}
+    fun onHandleDragging(angle: Double) {}
 }

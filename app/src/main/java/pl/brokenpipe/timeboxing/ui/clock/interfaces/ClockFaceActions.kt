@@ -4,7 +4,7 @@ import pl.brokenpipe.timeboxing.ui.clock.Side
 
 interface ClockFaceActions {
     fun update()
-    fun setClockFaceShape(angle: Float)
+    fun setClockFaceShape(angle: Double)
     fun setClockFacePaints(fullSpinsCount: Int)
     fun changeSide(side: Side)
 }

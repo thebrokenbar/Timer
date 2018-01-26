@@ -1,11 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<layout>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="pl.brokenpipe.timeboxing.screens.timer.v2.TimerViewModel"/>
+        <variable
+            name="viewHandler"
+            type="pl.brokenpipe.timeboxing.screens.timer.v2.TimerViewHandler"/>
+        <import type="pl.brokenpipe.timeboxing.BuildConfig"/>
+    </data>
+
+    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
                   android:layout_width="match_parent"
                   android:layout_height="match_parent">
     <pl.brokenpipe.timeboxing.ui.clock2.ClockView
+        android:id="@+id/clockView"
+        app:angle="@={viewModel.timerAngle}"
+        app:onClockFaceTouchListener="@{viewHandler.onTimerTouchListener()}"
+        app:value="180"
+        app:currentSpinSide="@={viewModel.clockSpinSide}"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-    </LinearLayout>
+        <View
+            android:id="@+id/vClockCenterBackground"
+            android:background="@color/clock_background"
+            android:layout_width="@dimen/timerClockCenterSize"
+            android:layout_height="@dimen/timerCloc-kCenterSize"
+            app:layout_constraintRight_toRightOf="@+id/rlClockCenter"
+            app:layout_constraintLeft_toLeftOf="@+id/rlClockCenter"
+            app:layout_constraintBottom_toBottomOf="@+id/rlClockCenter"
+            app:layout_constraintTop_toTopOf="@+id/rlClockCenter" />
+        <RelativeLayout
+            android:id="@+id/rlClockCenter"
+            android:layout_width="@dimen/timerClockCenterSize"
+            android:layout_height="@dimen/timerClockCenterSize"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/clock_background"
+            android:onClick="@{() -> viewHandler.startTimer()}"
+            android:padding="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <TextView
+                android:id="@+id/tvClockLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="4dp"
+                android:textAlignment="center"
+                android:textColor="@color/text_color_secondary_dark"
+                android:textSize="12sp"
+                tools:text="Part #5" />
+            <LinearLayout
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true">
+                <TextView
+                    android:visibility="@{viewModel.timerLeftValueVisibility}"
+                    android:id="@+id/tvClockTimeLeft"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    tools:text="24"
+                    android:textColor="@color/text_color_primary_dark"
+                    android:textSize="@dimen/timerClockFontSize"
+                    android:text="@{viewModel.timeLeftValue}"/>
+                <TextView
+                    android:visibility="@{viewModel.timerLeftValueVisibility}"
+                    android:id="@+id/tvClockTimeMiddle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_color_primary_dark"
+                    android:textSize="@dimen/timerClockFontSize"
+                    android:text=":"/>
+                <TextView
+                    android:id="@+id/tvClockTimeRight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_color_primary_dark"
+                    android:textSize="@dimen/timerClockFontSize"
+                    android:textStyle="bold"
+                    tools:text="59"
+                    android:text="@{viewModel.timeRightValue}"/>
+            </LinearLayout>
+            <ImageView
+                android:id="@+id/ivClockActionImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_pause_white_24dp"
+                android:visibility="@{viewModel.pauseButtonVisibility}"
+                android:contentDescription="actionImage" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@{BuildConfig.VERSION_NAME}"
+            android:textColor="@android:color/white"
+            android:textSize="8sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            tools:text="1.0.1" />
+
+    </android.support.constraint.ConstraintLayout>
 </layout>

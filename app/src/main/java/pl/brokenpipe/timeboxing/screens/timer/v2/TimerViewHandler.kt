@@ -16,21 +16,15 @@
  *
  */
 
-package pl.brokenpipe.timeboxing.screens.timer
+package pl.brokenpipe.timeboxing.screens.timer.v2
 
-import pl.brokenpipe.boundcontroller.BoundController
-import pl.brokenpipe.timeboxing.databinding.TestclockBinding
+import pl.brokenpipe.timeboxing.ui.clock2.OnClockFaceTouchListener
 
 /**
- * Created by wierzchanowskig on 30.07.2017.
+ * Created by wierzchanowskig on 11.08.2017.
  */
-class TestTime : BoundController<TestclockBinding>() {
-
-    override fun onViewUnbound(binding: TestclockBinding) {
-
-    }
-
-    override fun onViewBound(binding: TestclockBinding) {
-
-    }
+interface TimerViewHandler {
+    fun startTimer()
+    fun pauseTimer()
+    fun onTimerTouchListener(): OnClockFaceTouchListener
 }

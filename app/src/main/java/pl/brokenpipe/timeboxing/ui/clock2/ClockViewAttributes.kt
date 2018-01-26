@@ -32,5 +32,6 @@ data class ClockViewAttributes(
     val dividersVisibility: Boolean,
     val spinSide: ClockSpinSide,
     val maxSpins: Int,
-    val value: Float
+    val snapAngle: Double,
+    val value: Double
 )

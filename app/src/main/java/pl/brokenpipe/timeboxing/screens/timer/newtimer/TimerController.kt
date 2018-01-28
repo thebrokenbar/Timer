@@ -18,30 +18,44 @@
 
 package pl.brokenpipe.timeboxing.screens.timer.newtimer
 
+import kotlinx.android.synthetic.main.testclock.*
 import pl.brokenpipe.boundcontroller.BoundController
 import pl.brokenpipe.boundcontroller.Layout
 import pl.brokenpipe.timeboxing.R
 import pl.brokenpipe.timeboxing.databinding.TestclockBinding
+import pl.brokenpipe.timeboxing.extensions.getAppComponent
 import pl.brokenpipe.timeboxing.screens.timer.newtimer.interfaces.TimerView
+import javax.inject.Inject
 
 /**
  * Created by wierzchanowskig on 30.07.2017.
  */
 @Layout(R.layout.testclock)
 class TimerController : BoundController<TestclockBinding>(), TimerView {
-    override fun showTimerEnd() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
 
-    override fun showTimerFatalError() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    @Inject
+    protected lateinit var countdown: Countdown
+
+    private lateinit var timerViewModel: TimerViewModel
+    private lateinit var timerViewState: TimerViewState
+
+    override fun onViewBound(binding: TestclockBinding) {
+        this.activity.getAppComponent().inject(this)
+        timerViewState = TimerViewState()
+        timerViewModel = TimerViewModel(this, timerViewState, countdown)
+        binding.viewState = timerViewState
+        binding.viewModel = timerViewModel
     }
 
     override fun onViewUnbound(binding: TestclockBinding) {
 
     }
 
-    override fun onViewBound(binding: TestclockBinding) {
+    override fun showTimerEnd() {
+        //TODO animation and sound
+    }
 
+    override fun showTimerFatalError() {
+        //TODO Toast or snackbar
     }
 }

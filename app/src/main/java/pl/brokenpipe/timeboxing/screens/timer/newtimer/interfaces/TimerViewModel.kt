@@ -9,5 +9,5 @@ import pl.brokenpipe.timeboxing.screens.timer.newtimer.TimerViewState
 interface TimerViewModel : ViewModel<TimerView, TimerViewState> {
     fun startTimer()
     fun pauseTimer()
-    fun setTimeByAngle(angle: Float)
+    fun setTimeByAngle(angle: Double)
 }

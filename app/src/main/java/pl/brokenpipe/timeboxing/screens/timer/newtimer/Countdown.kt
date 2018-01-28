@@ -2,6 +2,7 @@ package pl.brokenpipe.timeboxing.screens.timer.newtimer
 
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
+import pl.brokenpipe.timeboxing.extensions.SECOND_TO_MILLIS
 import pl.brokenpipe.timeboxing.screens.timer.newtimer.exceptions.TimerDisposedException
 import pl.brokenpipe.timeboxing.screens.timer.newtimer.exceptions.TimerNotStartedException
 import java.util.concurrent.TimeUnit
@@ -10,9 +11,6 @@ import java.util.concurrent.TimeUnit
  * Created by wierzchanowskig@gmail.com on 22.01.2018.
  */
 class Countdown {
-    companion object {
-        const val SECOND_TO_MILLIS = 1000L
-    }
 
     private val timerThread = Schedulers.newThread()
 

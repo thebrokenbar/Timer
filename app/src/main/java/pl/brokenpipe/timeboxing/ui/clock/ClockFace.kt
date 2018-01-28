@@ -110,12 +110,12 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
             }
             MotionEvent.ACTION_DOWN -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                logic.onTouchDown(Math.abs(angle))
+                logic.onTouchDown(Math.abs(angle).toFloat())
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
                 val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                logic.onTouchMove(Math.abs(angle))
+                logic.onTouchMove(Math.abs(angle).toFloat())
                 return true
             }
         }
@@ -137,22 +137,22 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
 //        }
 
         val firstCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, firstCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, firstCornerPoint), -180.0)
         val secondCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, secondCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, secondCornerPoint), -180.0)
         val thirdCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, thirdCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, thirdCornerPoint), -180.0)
         val fourthCornerAngle = angleHelper.rotateAngle(
-            angleHelper.getAngle(rectCenter, fourthCornerPoint), -180f)
+            angleHelper.getAngle(rectCenter, fourthCornerPoint), -180.0)
 
-        cornerAngles = arrayOf(firstCornerAngle, secondCornerAngle, thirdCornerAngle,
-                               fourthCornerAngle)
+        cornerAngles = arrayOf(firstCornerAngle.toFloat(), secondCornerAngle.toFloat(), thirdCornerAngle.toFloat(),
+                               fourthCornerAngle.toFloat())
     }
 
     private fun getIncludedCornersPoints(clockHandAngle: Float): Array<PointF> {
         var result: Array<PointF> = emptyArray()
         for (i in cornerAngles.size - 1 downTo 0) {
-            if (angleHelper.rotateAngle(clockHandAngle, -180f) > cornerAngles[i] ) {
+            if (angleHelper.rotateAngle(clockHandAngle.toDouble(), -180.0) > cornerAngles[i] ) {
                 val rangeStart = if(isClockRightSided()) i else 0
                 val rangeEnd = if(isClockRightSided()) cornerAngles.size else i + 1
                 result = cornerPoints.copyOfRange(rangeStart, rangeEnd)
@@ -171,7 +171,7 @@ class ClockFace(context: Context, attributeSet: AttributeSet)
         faceCenter = PointF(w / 2f, h / 2f)
         calculateCorners(clockRect)
         val angle =  angleHelper.getAngleByTimeWithValidSide(logic.timeInSec, logic.clockSpinSide)
-        setClockFaceShape(angle)
+        setClockFaceShape(angle.toFloat())
         update()
     }
 

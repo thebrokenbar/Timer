@@ -78,7 +78,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
             .map { updateFullSpins(it) }
             .doOnNext {
                 val angle = if (clockSpinSide == RIGHT) 360 - it else it
-                val seconds = angleHelper.angleToSeconds(angle, fullSpinsCount)
+                val seconds = angleHelper.angleToSeconds(angle.toDouble(), fullSpinsCount)
                 timeInSec = snapToMinutes(seconds)
             }
     }
@@ -89,7 +89,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
 
     private fun getTimerAngleObservable(): Observable<Float> {
         return getTimerSecondsObservable().map {
-            angleHelper.getAngleByTimeWithValidSide(it, clockSpinSide)
+            angleHelper.getAngleByTimeWithValidSide(it, clockSpinSide).toFloat()
         }
     }
 
@@ -117,7 +117,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     private fun getCurrentTimeAngle(): Float {
-        return angleHelper.getAngleByTimeWithValidSide(timeInSec, clockSpinSide)
+        return angleHelper.getAngleByTimeWithValidSide(timeInSec, clockSpinSide).toFloat()
     }
 
     private fun updateFullSpins(angle: Float): Float {
@@ -163,14 +163,14 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
     }
 
     private fun isFullSpinnedRight(angle: Float): Boolean {
-        val last = angleHelper.rotateAngle(lastAngle, -180f)
-        val current = angleHelper.rotateAngle(angle, -180f)
+        val last = angleHelper.rotateAngle(lastAngle.toDouble(), -180.0)
+        val current = angleHelper.rotateAngle(angle.toDouble(), -180.0)
         return last < 90 && current > 270
     }
 
     private fun isFullSpinnedLeft(angle: Float): Boolean {
-        val last = angleHelper.rotateAngle(lastAngle, -180f)
-        val current = angleHelper.rotateAngle(angle, -180f)
+        val last = angleHelper.rotateAngle(lastAngle.toDouble(), -180.0)
+        val current = angleHelper.rotateAngle(angle.toDouble(), -180.0)
         return last > 270 && current < 90
     }
 
@@ -193,7 +193,7 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         if (isClockHandDragged) {
             val snappedTime = snapToMinutes(timeInSec)
             val angle = angleHelper.getAngleByTimeWithValidSide(snappedTime, clockSpinSide)
-            emitAngle(angle)
+            emitAngle(angle.toFloat())
             isClockHandDragged = false
             if (fullSpinsCount < 0) {
                 fullSpinsCount = 0
@@ -209,14 +209,14 @@ class ClockLogic(val angleHelper: AngleHelper, val clockFaceActions: ClockFaceAc
         isClockHandDragged = isHandleDragged(angle)
         if (isClockHandDragged) {
             clockHandleAngleOffset = angle - getCurrentTimeAngle()
-            lastAngle = angleHelper.getAngleByTimeWithValidSide(timeInSec, clockSpinSide)
+            lastAngle = angleHelper.getAngleByTimeWithValidSide(timeInSec, clockSpinSide).toFloat()
             pause()
         }
     }
 
     fun onTouchMove(angle: Float) {
         if (isClockHandDragged) {
-            emitAngle(angleHelper.standarizeAngle(angle - clockHandleAngleOffset))
+            emitAngle(angleHelper.standarizeAngle(angle.toDouble() - clockHandleAngleOffset).toFloat())
         }
     }
 

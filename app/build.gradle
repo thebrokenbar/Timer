@@ -5,73 +5,98 @@ apply plugin: "kotlin-kapt"
 apply plugin: 'kotlin-android-extensions'
 
 repositories {
-  maven {
-    url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo'
-  }
-  mavenCentral()
-  flatDir {
-    dirs 'libs'
-  }
+    maven {
+        url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo'
+    }
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+kapt {
+    generateStubs = true
 }
 
 android {
-  dataBinding {
-    enabled = true
-  }
-  compileSdkVersion 27
-  buildToolsVersion "27.0.1"
-  defaultConfig {
-    applicationId "pl.brokenpipe.timeboxing"
-    minSdkVersion 16
-    targetSdkVersion 27
-    versionCode 9
-    versionName "v1.1.0"
-    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-    buildConfigField "boolean", "FAST", "false"
-  }
-  buildTypes {
-    release {
-      minifyEnabled false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    dataBinding {
+        enabled = true
     }
+    compileSdkVersion 27
+    buildToolsVersion "27.0.1"
+    defaultConfig {
+        applicationId "pl.brokenpipe.timeboxing"
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 9
+        versionName "v1.1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-    debug {
-      versionNameSuffix "-debug"
+        buildConfigField "boolean", "FAST", "false"
     }
-  }
-  flavorDimensions "minApi"
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
 
-  sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
-  }
+        debug {
+            versionNameSuffix "-debug"
+        }
+    }
+    flavorDimensions "minApi"
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 
 dependencies {
-  compile fileTree(include: ['*.jar'], dir: 'libs')
-  testCompile 'junit:junit:4.12'
-  testCompile 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-alpha02'
-  compile 'pl.brokenpipe:boundcontroller:0.1'
-  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  compile "io.reactivex:rxjava:$rxjava_version"
-  compile "com.android.support:appcompat-v7:$android_support_version"
-  compile "com.android.support:support-v4:$android_support_version"
-  kapt "com.android.databinding:compiler:$gradle_version"
-  androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-    exclude group: 'com.android.support', module: 'support-annotations'
-  })
-  compile 'io.reactivex.rxjava2:rxjava:2.1.8'
-  compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-  compile 'io.reactivex.rxjava2:rxkotlin:2.2.0'
-  compile 'com.bluelinelabs:conductor:2.0.3'
-  compile 'io.reactivex:rxandroid:1.2.1'
-  compile 'com.google.dagger:dagger:2.7'
-  compile 'com.jakewharton.timber:timber:4.5.1'
-  compile 'com.google.firebase:firebase-crash:10.0.1'
-  compile 'com.google.firebase:firebase-core:10.0.1'
-  kapt 'org.parceler:parceler:1.1.6'
-  kapt 'com.google.dagger:dagger-compiler:2.7'
-  compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    //UnitTest
+    testCompile 'junit:junit:4.12'
+    testCompile 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-alpha02'
+
+    //Dagger
+    compile 'com.google.dagger:dagger:2.14.1'
+    kapt 'com.google.dagger:dagger-compiler:2.14.1'
+    compile 'com.google.dagger:dagger-android:2.14.1'
+    compile 'com.google.dagger:dagger-android-support:2.14.1' // if you use the support libraries
+    kapt 'com.google.dagger:dagger-android-processor:2.14.1'
+
+    //Kotlin
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    //Android
+    compile "com.android.support:appcompat-v7:$android_support_version"
+    compile "com.android.support:support-v4:$android_support_version"
+    kapt "com.android.databinding:compiler:$gradle_version"
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+
+    //Firebase
+    compile 'com.google.firebase:firebase-crash:10.0.1'
+    compile 'com.google.firebase:firebase-core:10.0.1'
+
+    //RxJava
+    compile "io.reactivex:rxjava:$rxjava_version"
+    compile 'io.reactivex.rxjava2:rxjava:2.1.8'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'io.reactivex.rxjava2:rxkotlin:2.2.0'
+    compile 'io.reactivex:rxandroid:1.2.1'
+
+    //Conductor
+    compile 'com.bluelinelabs:conductor:2.0.3'
+    compile 'pl.brokenpipe:boundcontroller:0.1'
+
+    //EspressoTest
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    //Else
+    compile 'com.jakewharton.timber:timber:4.5.1'
+    kapt 'org.parceler:parceler:1.1.6'
 }
 
 apply plugin: 'com.google.gms.google-services'

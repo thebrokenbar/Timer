@@ -19,7 +19,7 @@ open class AngleHelper {
     }
 
     fun rotateAngle(angle: Double, rotation: Double): Double {
-        return angle + rotation
+        return standarizeAngle(angle + rotation)
     }
 
     fun secondsToAngle(seconds: Long): Double {

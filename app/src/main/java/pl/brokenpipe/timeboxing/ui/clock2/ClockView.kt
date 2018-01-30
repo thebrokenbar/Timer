@@ -91,7 +91,7 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
     private var fullSpinsCount: Int = 0
     var angle: Double = 0.0
         set(value) {
-            updateSpin(value)
+            updateSpin(userAngleToScreenAngle(value))
             field = value
             setClockFaceShape(field)
             update()
@@ -235,14 +235,16 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         val thirdCornerAngle = angleHelper.getAngle(rectCenter, thirdCornerPoint)
         val fourthCornerAngle = angleHelper.getAngle(rectCenter, fourthCornerPoint)
 
-        cornerAngles = arrayOf(firstCornerAngle, secondCornerAngle, thirdCornerAngle,
+        cornerAngles = arrayOf(firstCornerAngle,
+                secondCornerAngle, thirdCornerAngle,
                 fourthCornerAngle)
+        cornerAngles.reverse()
     }
 
     private fun getIncludedCornersPoints(clockHandAngle: Double): Array<PointF> {
         var result: Array<PointF> = emptyArray()
         for (i in cornerAngles.size - 1 downTo 0) {
-            if (angleHelper.rotateAngle(clockHandAngle, -180.0) > cornerAngles[i]) {
+            if (clockHandAngle > cornerAngles[i]) {
                 val rangeStart = if (isClockRightSided()) i else 0
                 val rangeEnd = if (isClockRightSided()) cornerAngles.size else i + 1
                 result = cornerPoints.copyOfRange(rangeStart, rangeEnd)
@@ -303,7 +305,7 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         }
 
         val lineEnd = getLineEnd(faceCenter.x, faceCenter.y,
-                angle,
+                userAngleToScreenAngle(angle),
                 rectDiagonalLength)
         faceShape.lineTo(lineEnd.x, lineEnd.y)
 
@@ -371,6 +373,10 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         val last = angleHelper.rotateAngle(lastAngle, -180.0)
         val current = angleHelper.rotateAngle(angle, -180.0)
         return last > 270 && current < 90
+    }
+
+    private fun userAngleToScreenAngle(userAngle: Double): Double {
+        return angleHelper.rotateAngle(userAngle, -180.0)
     }
 
     fun angleChanges() = angleChangeSubject

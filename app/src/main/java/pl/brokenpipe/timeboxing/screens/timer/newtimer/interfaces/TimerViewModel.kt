@@ -10,4 +10,6 @@ interface TimerViewModel : ViewModel<TimerView, TimerViewState> {
     fun startTimer()
     fun pauseTimer()
     fun setTimeByAngle(angle: Double)
+    fun toggleState()
+    fun setSetupState(setup: Boolean)
 }

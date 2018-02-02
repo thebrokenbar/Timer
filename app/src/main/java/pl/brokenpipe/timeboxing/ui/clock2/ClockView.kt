@@ -23,20 +23,18 @@ import android.content.res.TypedArray
 import android.databinding.*
 import android.graphics.*
 import android.graphics.Bitmap.Config.ARGB_8888
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
-import io.reactivex.subjects.BehaviorSubject
 import pl.brokenpipe.timeboxing.R
+import pl.brokenpipe.timeboxing.extensions.HOUR_IN_MILLIS
 import pl.brokenpipe.timeboxing.extensions.toClockAngle
 import pl.brokenpipe.timeboxing.extensions.toClockTimeMillis
 import pl.brokenpipe.timeboxing.ui.clock.AngleHelper
 import timber.log.Timber
-import java.util.*
+import kotlin.math.roundToInt
 
 
 @BindingMethods(
@@ -53,10 +51,18 @@ import java.util.*
         InverseBindingMethod(type = ClockView::class, attribute = "time", method = "getTime"),
         InverseBindingMethod(type = ClockView::class, attribute = "currentSpinSide", method = "getCurrentSpinSide")
 )
-class ClockView(context: Context, attributeSet: AttributeSet) :
-        SurfaceView(context, attributeSet), OnTouchListener {
-    private val HANDLE_DRAG_ANGLE = 15
-    private val MAX_FULL_SPINS = Int.MAX_VALUE
+class ClockView : SurfaceView, OnTouchListener {
+    constructor(context: Context) : this(context, null)
+    constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+        attributeSet = attrs
+        init()
+    }
+
+    private var attributeSet: AttributeSet? = null
+
+    private val handleDragAngle = 15
+    private val maxFullSpins = Int.MAX_VALUE
 
     var currentSpinSideInverseBindingListener: InverseBindingListener? = null
     var timeAttrChangedInverseBindingListener: InverseBindingListener? = null
@@ -65,8 +71,8 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
     var onDragStopListener: OnClockFaceTouchListener.HandleDragStop? = null
     var onDraggingListener: OnClockFaceTouchListener.HandleDragging? = null
 
-    private val attributes: ClockViewAttributes
-    private val clockPalette: ClockPalette
+    private lateinit var attributes: ClockViewAttributes
+    private lateinit var  clockPalette: ClockPalette
     private val angleHelper: AngleHelper = AngleHelper()
 
     private var clockRect: RectF = RectF()
@@ -81,6 +87,7 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
     ///
 
     private var isClockHandDragged: Boolean = false
+    private var dragAngleDiff = 0.0
 
     var currentSpinSide: ClockSpinSide = ClockSpinSide.LEFT
         set(value) {
@@ -95,22 +102,23 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
             field = value
             setClockFaceShape(field)
             update()
-            angleChangeSubject.onNext(field)
+            Timber.d("Actual angle: $field")
         }
     var time: Long
         get() {
-            return angle.toClockTimeMillis()
+            return (fullSpinsCount * 360 + angle).toClockTimeMillis()
         }
         set(value) {
-            angle = value.toClockAngle(currentSpinSide)
+            fullSpinsCount = (value / HOUR_IN_MILLIS).toInt()
+            angle = (value % HOUR_IN_MILLIS).toClockAngle()
         }
     private var lastAngle: Double = 0.0
-    private val angleChangeSubject = BehaviorSubject.create<Double>()
 
     ///
 
-    init {
-        val clockTypedArray = context.theme.obtainStyledAttributes(attributeSet, R.styleable.ClockView, 0, 0)
+    private fun init() {
+        val clockTypedArray = context.theme.obtainStyledAttributes(this.attributeSet,
+                R.styleable.ClockView, 0, 0)
         try {
             attributes = parseAttributes(clockTypedArray)
             clockPalette = ClockPalette(attributes)
@@ -156,64 +164,82 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
     }
 
     private fun updatePalette() {
-        if (fullSpinsCount <= 0) {
-            clockPalette.faceBackgroundPaint.color = attributes.backgroundColor
-            clockPalette.facePaint.color = attributes.primaryFaceColor
-        } else if (fullSpinsCount % 2 != 0) {
-            clockPalette.faceBackgroundPaint.color = attributes.primaryFaceColor
-            clockPalette.facePaint.color = attributes.secondaryFaceColor
-        } else {
-            clockPalette.faceBackgroundPaint.color = attributes.secondaryFaceColor
-            clockPalette.facePaint.color = attributes.primaryFaceColor
+        when {
+            fullSpinsCount <= 0 -> {
+                clockPalette.faceBackgroundPaint.color = attributes.backgroundColor
+                clockPalette.facePaint.color = attributes.primaryFaceColor
+            }
+            fullSpinsCount % 2 != 0 -> {
+                clockPalette.faceBackgroundPaint.color = attributes.primaryFaceColor
+                clockPalette.facePaint.color = attributes.secondaryFaceColor
+            }
+            else -> {
+                clockPalette.faceBackgroundPaint.color = attributes.secondaryFaceColor
+                clockPalette.facePaint.color = attributes.primaryFaceColor
+            }
         }
     }
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_UP -> {
-                val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                this.angle = angle
-                timeAttrChangedInverseBindingListener?.onChange()
-                isClockHandDragged = false
-                onDragStopListener?.onHandleDragStop(Math.abs(this.angle) + 360 * fullSpinsCount)
-                Timber.d("UP: $angle")
+                handleReleaseTouch(event)
                 return true
             }
             MotionEvent.ACTION_DOWN -> {
-                val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                isClockHandDragged = isHandleDragged(Math.abs(angle))
-                if (isClockHandDragged) {
-                    onDragStartListener?.onHandleDragStart(Math.abs(angle) + 360 * fullSpinsCount)
-                }
-                Timber.d("DOWN: $angle")
+                handleTouch(event)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
-                if (isClockHandDragged) {
-                    this.angle = Math.abs(angle)
-                    timeAttrChangedInverseBindingListener?.onChange()
-                    onDraggingListener?.onHandleDragging(Math.abs(angle) + 360 * fullSpinsCount)
-                }
-                Timber.d("MOVE: $angle")
+                handleDrag(event)
                 return true
             }
         }
         return false
     }
 
+    private fun handleReleaseTouch(event: MotionEvent) {
+        val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
+        if (isClockHandDragged) {
+            this.angle = snapAngle(angle)
+            timeAttrChangedInverseBindingListener?.onChange()
+            isClockHandDragged = false
+            onDragStopListener?.onHandleDragStop(Math.abs(this.angle) + 360 * fullSpinsCount)
+            Timber.d("UP: $angle")
+        }
+    }
+
+    private fun handleTouch(event: MotionEvent) {
+        val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
+        dragAngleDiff = this.angle - angle
+        isClockHandDragged = isHandleDragged(Math.abs(angle))
+        if (isClockHandDragged) {
+            onDragStartListener?.onHandleDragStart(Math.abs(angle) + 360 * fullSpinsCount)
+        }
+        Timber.d("DOWN: $angle")
+    }
+
+    private fun handleDrag(event: MotionEvent) {
+        val angle = angleHelper.getAngle(faceCenter.x, faceCenter.y, event.x, event.y)
+        if (isClockHandDragged) {
+            this.angle = angleHelper.standarizeAngle(Math.abs(angle) + dragAngleDiff)
+            timeAttrChangedInverseBindingListener?.onChange()
+            onDraggingListener?.onHandleDragging(Math.abs(angle) + 360 * fullSpinsCount)
+        }
+        Timber.d("MOVE: $angle")
+    }
+
     private fun snapAngle(angle: Double): Double {
         val snapAngle = attributes.snapAngle
         if (snapAngle == 0.0) return angle
-        val e = (angle / snapAngle).toInt()
+        val e = (angle / snapAngle).roundToInt()
         val w = e * snapAngle
-        val newAngle = if (angle - w >= snapAngle / 2) w + snapAngle else w
-        return newAngle
+        return if (angle - w >= snapAngle / 2) w + snapAngle else w
     }
 
     private fun isHandleDragged(it: Double): Boolean {
-        return (Math.abs(angle - it) < HANDLE_DRAG_ANGLE)
-                || (Math.abs(angle - it) > 360 - HANDLE_DRAG_ANGLE)
+        return (Math.abs(angle - it) < handleDragAngle)
+                || (Math.abs(angle - it) > 360 - handleDragAngle)
     }
 
     private fun calculateCorners(rect: RectF) {
@@ -226,9 +252,7 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         cornerPoints = arrayOf(firstCornerPoint, secondCornerPoint, thirdCornerPoint,
                 fourthCornerPoint)
 
-//        if (isClockRightSided()) {
         cornerPoints.reverse()
-//        }
 
         val firstCornerAngle = angleHelper.getAngle(rectCenter, firstCornerPoint)
         val secondCornerAngle = angleHelper.getAngle(rectCenter, secondCornerPoint)
@@ -261,17 +285,6 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         return currentSpinSide == ClockSpinSide.RIGHT
     }
 
-    override fun onSaveInstanceState(): Parcelable {
-        val state = SavedState(super.onSaveInstanceState())
-        state.angle = angle
-        return state
-    }
-
-    override fun onRestoreInstanceState(state: Parcelable) {
-        super.onRestoreInstanceState(state)
-        angle = (state as SavedState).angle
-    }
-
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         clockRect.set(0f, 0f, w.toFloat(), h.toFloat())
@@ -279,11 +292,6 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         calculateCorners(clockRect)
         setClockFaceShape(angle)
         update()
-    }
-
-    fun updateAngle(angle: Double) {
-        fullSpinsCount = Math.abs(angle / 360).toInt()
-        this.angle = Math.abs(angle % 360)
     }
 
     private fun update() {
@@ -328,7 +336,7 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
         if (angle > 90 && angle < 270) {
             if (isFullSpinLeft(angle)) {
                 if (currentSpinSide == ClockSpinSide.LEFT) {
-                    fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
+                    fullSpinsCount = Math.min(fullSpinsCount + 1, maxFullSpins - 1)
                 } else if (currentSpinSide == ClockSpinSide.RIGHT) {
                     fullSpinsCount--
                     if (fullSpinsCount < 0) {
@@ -340,7 +348,7 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
                 }
             } else if (isFullSpinRight(angle)) {
                 if (currentSpinSide == ClockSpinSide.RIGHT) {
-                    fullSpinsCount = Math.min(fullSpinsCount + 1, MAX_FULL_SPINS - 1)
+                    fullSpinsCount = Math.min(fullSpinsCount + 1, maxFullSpins - 1)
                 } else if (currentSpinSide == ClockSpinSide.LEFT) {
                     fullSpinsCount--
                     if (fullSpinsCount < 0) {
@@ -377,32 +385,5 @@ class ClockView(context: Context, attributeSet: AttributeSet) :
 
     private fun userAngleToScreenAngle(userAngle: Double): Double {
         return angleHelper.rotateAngle(userAngle, -180.0)
-    }
-
-    fun angleChanges() = angleChangeSubject
-
-    class SavedState : BaseSavedState {
-        var angle = 0.0
-
-        constructor(savedState: Parcelable) : super(savedState)
-        constructor(parcel: Parcel) : super(parcel)
-
-        override fun writeToParcel(parcel: Parcel, flags: Int) {
-            super.writeToParcel(parcel, flags)
-        }
-
-        override fun describeContents(): Int {
-            return 0
-        }
-
-        companion object CREATOR : Parcelable.Creator<SavedState> {
-            override fun createFromParcel(parcel: Parcel): SavedState {
-                return SavedState(parcel)
-            }
-
-            override fun newArray(size: Int): Array<SavedState?> {
-                return arrayOfNulls(size)
-            }
-        }
     }
 }

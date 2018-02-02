@@ -36,13 +36,13 @@ class TimerController : BoundController<TestclockBinding>(), TimerView {
     @Inject
     protected lateinit var countdown: Countdown
 
-    private lateinit var timerViewModel: TimerViewModel
-    private lateinit var timerViewState: TimerViewState
+    private val timerViewState: TimerViewState = TimerViewState()
+    private var timerViewModel: TimerViewModel? = null
 
     override fun onViewBound(binding: TestclockBinding) {
         this.activity.getAppComponent().inject(this)
-        timerViewState = TimerViewState()
-        timerViewModel = TimerViewModel(this, timerViewState, countdown)
+
+        timerViewModel = timerViewModel ?: TimerViewModel(this, timerViewState , countdown)
         binding.viewState = timerViewState
         binding.viewModel = timerViewModel
     }

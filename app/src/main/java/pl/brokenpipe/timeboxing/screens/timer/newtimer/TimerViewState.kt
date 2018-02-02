@@ -1,9 +1,9 @@
 package pl.brokenpipe.timeboxing.screens.timer.newtimer
 
-import android.databinding.BaseObservable
 import android.databinding.Bindable
 import pl.brokenpipe.timeboxing.BR
 import pl.brokenpipe.timeboxing.arch.ViewState
+import pl.brokenpipe.timeboxing.ui.timebox.TimeboxState
 import timber.log.Timber
 
 /**
@@ -19,7 +19,7 @@ class TimerViewState : ViewState() {
             notifyPropertyChanged(BR.timeInMillis)
         }
     @get:Bindable
-    var running: Boolean = false
+    var running: TimeboxState = TimeboxState.FINISH
         set(value) {
             field = value
             notifyPropertyChanged(BR.running)

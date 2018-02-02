@@ -1,21 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <data>
+
+        <import type="pl.brokenpipe.timeboxing.BuildConfig" />
+
         <variable
             name="viewState"
-            type="pl.brokenpipe.timeboxing.screens.timer.newtimer.TimerViewState"/>
+            type="pl.brokenpipe.timeboxing.screens.timer.newtimer.TimerViewState" />
+
         <variable
             name="viewModel"
-            type="pl.brokenpipe.timeboxing.screens.timer.newtimer.TimerViewModel"/>
+            type="pl.brokenpipe.timeboxing.screens.timer.newtimer.interfaces.TimerViewModel" />
     </data>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:layout_width="match_parent"
-                  android:layout_height="match_parent">
-    <pl.brokenpipe.timeboxing.ui.clock2.ClockView
-        android:id="@+id/clockView"
-        app:time="@={viewState.timeInMillis}"
+
+    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-    </LinearLayout>
+        android:layout_height="match_parent">
+
+        <pl.brokenpipe.timeboxing.ui.clock2.ClockView
+            android:id="@+id/clockView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:backgroundColor="@color/clock_background"
+            app:onDragStartListener="@{(angle) -> viewModel.setSetupState(true)}"
+            app:onDragStopListener="@{(angle) -> viewModel.setSetupState(false)}"
+            app:snapAngle="6.0"
+            app:time="@={viewState.timeInMillis}" />
+
+        <pl.brokenpipe.timeboxing.ui.timebox.Timebox
+            android:layout_width="@dimen/timerClockCenterSize"
+            android:layout_height="@dimen/timerClockCenterSize"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:onClick="@{() -> viewModel.toggleState()}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:running="@{viewState.running}"
+            app:time="@{viewState.timeInMillis}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@{BuildConfig.VERSION_NAME}"
+            android:textColor="@android:color/white"
+            android:textSize="8sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            tools:text="1.0.1" />
+    </android.support.constraint.ConstraintLayout>
 </layout>

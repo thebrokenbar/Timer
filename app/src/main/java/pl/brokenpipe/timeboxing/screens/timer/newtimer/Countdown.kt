@@ -2,7 +2,7 @@ package pl.brokenpipe.timeboxing.screens.timer.newtimer
 
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
-import pl.brokenpipe.timeboxing.extensions.SECOND_TO_MILLIS
+import pl.brokenpipe.timeboxing.extensions.SECOND_IN_MILLIS
 import pl.brokenpipe.timeboxing.screens.timer.newtimer.exceptions.TimerDisposedException
 import pl.brokenpipe.timeboxing.screens.timer.newtimer.exceptions.TimerNotStartedException
 import java.util.concurrent.TimeUnit
@@ -16,7 +16,7 @@ class Countdown {
 
     private var timeInMillis: Long = 0
     private var running = false
-    private var timerIntervalMillis = SECOND_TO_MILLIS
+    private var timerIntervalMillis = SECOND_IN_MILLIS
     private var intervalFlowable: Flowable<Long>? = null
     private var timerId = 0
 
@@ -47,7 +47,7 @@ class Countdown {
                 .takeUntil { timeInMillis <= 0 }
                 .takeWhile { timeInMillis > 0 }
                 .map {
-                    timeInMillis -= SECOND_TO_MILLIS
+                    timeInMillis -= SECOND_IN_MILLIS
                     return@map timeInMillis
                 }
     }

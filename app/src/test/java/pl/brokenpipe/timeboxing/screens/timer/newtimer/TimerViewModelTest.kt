@@ -68,17 +68,4 @@ class TimerViewModelTest {
         verify(timerViewState).timeInMillis = 0
     }
 
-    @Test
-    fun viewStateSetsTimeOn1Hour20MinWhenPArsingFromAngle480(){
-        viewModel.setTimeByAngle(660.0)
-        verify(timerViewState).timeInMillis = (1 * 60 + 20) * 1000
-    }
-
-    @Test
-    fun viewStateSetsSameTimeWhenParsedFromSameNegativeAndPositiveAngle(){
-        viewModel.setTimeByAngle(660.0)
-        viewModel.setTimeByAngle(-660.0)
-        verify(timerViewState, times(2)).timeInMillis = (1 * 60 + 20) * 1000
-    }
-
 }

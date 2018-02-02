@@ -14,10 +14,14 @@ data class Time(var hours: Long, var minutes: Long, var seconds: Long) {
     }
 
     fun secondsToString(): String {
-        if(isZero())
-            return "0"
+        return if(isZero())
+            "0"
         else
-            return "%02d".format(seconds)
+            "%02d".format(seconds)
+    }
+
+    fun roundedMinutesToString(): String {
+        return "%02d".format(minutes + (seconds/30).toInt())
     }
 
     fun getTotalSeconds() = seconds + hours * 60 * 60 + minutes * 60
